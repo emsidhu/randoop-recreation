@@ -5,17 +5,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Sequence {
-    public final List<MethodCall> methodCalls = new ArrayList<>();
+  public final List<MethodCall> methodCalls = new ArrayList<>();
 
-    public Sequence() {
-    }
+  public Sequence() {
+  }
 
-    public static Sequence extend(Method m, List<Sequence> seqs, List<Object> args) {
-        Sequence newSeq = new Sequence();
-        for (Sequence seq : seqs) {
-            newSeq.methodCalls.addAll(seq.methodCalls);
-        }
-        newSeq.methodCalls.add(new MethodCall(m, args.toArray()));
-        return newSeq;
+  public static Sequence extend(Method m, List<Sequence> seqs, List<Object> args) {
+    Sequence newSeq = new Sequence();
+    for (Sequence seq : seqs) {
+      newSeq.methodCalls.addAll(seq.methodCalls);
     }
+    newSeq.methodCalls.add(new MethodCall(m, args.toArray()));
+    return newSeq;
+  }
 }
