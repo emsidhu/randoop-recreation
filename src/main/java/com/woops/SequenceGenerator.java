@@ -32,7 +32,7 @@ public class SequenceGenerator {
 
       Method m = methods[new Random().nextInt(methods.length)];
       
-
+      List<Sequence> seqs = new ArrayList<>();
       List<Object> args = new ArrayList<>();
 
       // Make a receiver the first argument for non-static methods
@@ -47,12 +47,13 @@ public class SequenceGenerator {
         }
       }
       
-      // TODO: Allow use of methodCall return values in newSeq (if needed) and 
-        // only pass in utilized sequences to extend (instead of all nonErrorSeqs) 
+      
+      // TODO: Allow use of methodCall return values in newSeq (if return value is needed) and 
+        // pass in utilized sequences to extend 
       for (Class<?> type : m.getParameterTypes()) {
         args.add(getRandomValue(type));
       }
-      Sequence newSeq = Sequence.extend(m, nonErrorSeqs, args);
+      Sequence newSeq = Sequence.extend(m, seqs, args);
 
       try {
         newSeq.execute();
