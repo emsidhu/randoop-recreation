@@ -14,17 +14,20 @@ public class Main
     // TODO: Allow people to pass in multiple class names
     
     if (args.length < 2) {
-      System.err.println("Usage: java com.woops.Main <class_directory> <class_name>");
+      System.err.println("Error: Too few arguments, need class directory and name");
       return;
     }
-    
     File classDir = new File(args[0]);
+    // The class name should be the fully qualified name, e.g., "com.woops.Class"
+    String className = args[1];
+    int timeLimit = 1000;
+    int maxSequences = 5;
+    
     if (!classDir.exists() || !classDir.isDirectory()) {
       System.err.println("Error: The provided path does not point to a valid directory.");
       return;
     }
-    // The class name should be the fully qualified name, e.g., "com.woops.Class"
-    String className = args[1];
+
 
     List<Class<?>> classes = new ArrayList<>();
     // Get the class object
@@ -32,7 +35,7 @@ public class Main
     if (cls == null) return;
     classes.add(cls);
     
-    List<Sequence> sequences = SequenceGenerator.generateSequences(classes, 1000, 10);
+    List<Sequence> sequences = SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
     // TODO: don't just print this, use their toCode method to output the sequences into a test suite
     for (Sequence seq : sequences) {
       System.out.println("Generated Sequence: ");
