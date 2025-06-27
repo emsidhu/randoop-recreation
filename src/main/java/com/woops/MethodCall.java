@@ -2,6 +2,8 @@ package com.woops;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
 
 /** 
   * Represents a method call within a sequence.
@@ -9,11 +11,11 @@ import java.lang.reflect.Modifier;
   */
 public final class MethodCall {
   private final Method method;
-  private final Object[] args;
+  private final List<Object> args;
   private final boolean isStatic;
   private Object result;
 
-  public MethodCall(Method method, Object[] args) {
+  public MethodCall(Method method, List<Object> args) {
     this.method = method;
     this.args = args;
     isStatic = Modifier.isStatic(method.getModifiers());
@@ -33,9 +35,9 @@ public final class MethodCall {
     }
     code.append(".").append(method.getName()).append("(");
     // Don't include the first arg (the receiver) if the method isn't static
-    for (int i = (isStatic ? 0 : 1); i < args.length; i++) {
-      code.append(args[i]);
-      if (i < args.length - 1) code.append(", ");
+    for (int i = (isStatic ? 0 : 1); i < args.size(); i++) {
+      code.append(args.get(i));
+      if (i < args.size() - 1) code.append(", ");
     }
     code.append(")");
     return code.toString();

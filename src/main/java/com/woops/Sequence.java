@@ -15,7 +15,7 @@ public class Sequence {
     for (Sequence seq : seqs) {
       newSeq.methodCalls.addAll(seq.methodCalls);
     }
-    newSeq.methodCalls.add(new MethodCall(m, args.toArray()));
+    newSeq.methodCalls.add(new MethodCall(m, args));
     return newSeq;
   }
 
