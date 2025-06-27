@@ -35,13 +35,16 @@ public class SequenceGenerator {
       
 
       // Generate arguments for the chosen method
+      // This is partially a placeholder until sequence execution is implemented
+
       List<Object> args = new ArrayList<>();
       for (Class<?> type : m.getParameterTypes()) {
         args.add(getRandomValue(type));
       }
-
-
+        // Once sequences can be executed, should reuse random methodCall return values in newSeq
+          // and only pass in utilized sequences to extend (instead of all nonErrorSeqs) 
       Sequence newSeq = Sequence.extend(m, nonErrorSeqs, args);
+
       try {
         // TODO: Execute the sequence and check for errors
           // newSeq.execute();
