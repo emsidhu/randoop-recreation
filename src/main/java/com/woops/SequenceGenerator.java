@@ -55,7 +55,6 @@ public class SequenceGenerator {
       Sequence newSeq = Sequence.extend(m, nonErrorSeqs, args);
 
       try {
-        // TODO: Execute the sequence and check for errors
         newSeq.execute();
         nonErrorSeqs.add(newSeq);
         sequenceCount++;
