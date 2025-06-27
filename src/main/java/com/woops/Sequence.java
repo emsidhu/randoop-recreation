@@ -30,6 +30,11 @@ public class Sequence {
     StringBuilder code = new StringBuilder();
     for (MethodCall s : methodCalls) {
       code.append(s.toCode()).append(";\n");
+      if (s.getResult() != null) {
+        code.append("Return value: ").append(s.getResult().toString()).append("\n\n");
+      } else {
+        code.append("No return value\n\n");
+      }
     }
     return code.toString();
   }

@@ -1,6 +1,8 @@
 package com.woops;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -30,28 +32,36 @@ public class SequenceGenerator {
 
       Method m = methods[new Random().nextInt(methods.length)];
       
-      
-
-      
-
-      // Generate arguments for the chosen method
-      // This is partially a placeholder until sequence execution is implemented
 
       List<Object> args = new ArrayList<>();
+
+      // Make a receiver the first argument for non-static methods
+      if (!Modifier.isStatic(m.getModifiers())) {
+        try {
+          // TODO: Make this work even when there is no default constructor
+          Constructor<?> constructor = cls.getDeclaredConstructor();
+          Object receiver = constructor.newInstance();
+          args.add(receiver);
+        } catch (Exception e) {
+          continue;
+        }
+      }
+      
+      // TODO: reuse random methodCall return values in newSeq and 
+        // only pass in utilized sequences to extend (instead of all nonErrorSeqs) 
       for (Class<?> type : m.getParameterTypes()) {
         args.add(getRandomValue(type));
       }
-        // Once sequences can be executed, should reuse random methodCall return values in newSeq
-          // and only pass in utilized sequences to extend (instead of all nonErrorSeqs) 
       Sequence newSeq = Sequence.extend(m, nonErrorSeqs, args);
 
       try {
         // TODO: Execute the sequence and check for errors
-          // newSeq.execute();
+        newSeq.execute();
         nonErrorSeqs.add(newSeq);
         sequenceCount++;
       } catch (Exception e) {
         // If an error occurs, add to errorSeqs
+        System.out.println("Error: " + e);
         errorSeqs.add(newSeq);
       }
     }
