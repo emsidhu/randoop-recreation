@@ -57,7 +57,7 @@ public class SequenceGenerator {
   }
 
   // Returns a random value for the given type.
-  public static Object getRandomValue(Class<?> type) {
+  private static Object getRandomValue(Class<?> type) {
     Random rand = new Random();
     if (type == int.class || type == Integer.class) return rand.nextInt(10);
     if (type == boolean.class || type == Boolean.class) return rand.nextBoolean();
