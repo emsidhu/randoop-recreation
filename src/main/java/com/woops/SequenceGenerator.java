@@ -14,9 +14,9 @@ public class SequenceGenerator {
     * @param classes List of classes to generate sequences from.
     * @param timeLimit Time limit in milliseconds.
     * @param maxSequences Maximum number of sequences to generate.
-    * @return List of successfully executed sequences.
+    * @return A Pair containing a list of the valid, and error causing, Sequences
   */
-  public static List<Sequence> generateSequences(List<Class<?>> classes, long timeLimit, int maxSequences) {
+  public static Pair<List<Sequence>,List<Sequence>> generateSequences(List<Class<?>> classes, long timeLimit, int maxSequences) {
     List<Sequence> errorSeqs = new ArrayList<>();
     List<Sequence> nonErrorSeqs = new ArrayList<>();
     long startTime = System.currentTimeMillis();
@@ -47,7 +47,7 @@ public class SequenceGenerator {
         }
       }
       
-      // TODO: reuse random methodCall return values in newSeq and 
+      // TODO: Allow use of methodCall return values in newSeq (if needed) and 
         // only pass in utilized sequences to extend (instead of all nonErrorSeqs) 
       for (Class<?> type : m.getParameterTypes()) {
         args.add(getRandomValue(type));
@@ -65,7 +65,7 @@ public class SequenceGenerator {
       }
     }
 
-    return nonErrorSeqs;
+    return new Pair<>(nonErrorSeqs, errorSeqs);
   }
 
   // Returns a random value for the given type.

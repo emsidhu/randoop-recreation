@@ -35,12 +35,21 @@ public class Main
     if (cls == null) return;
     classes.add(cls);
     
-    List<Sequence> sequences = SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
+    Pair<List<Sequence>,List<Sequence>> sequencePair = SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
     // TODO: don't just print this, use their toCode method to output the sequences into a test suite
-    for (Sequence seq : sequences) {
+    System.out.println("Valid Sequences: ");
+    for (Sequence seq : sequencePair.first) {
       System.out.println("Generated Sequence: ");
       System.out.println(seq.toCode());
     }
+    System.out.println();
+    System.out.println("Invalid (Error-Causing / Contract Violating) Sequences: ");
+    for (Sequence seq : sequencePair.second) {
+      System.out.println("Generated Sequence: ");
+      System.out.println(seq.toCode());
+    }
+
+
 
 
   }
