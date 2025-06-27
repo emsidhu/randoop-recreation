@@ -24,8 +24,8 @@ public class SequenceGenerator {
         sequenceCount < maxSequences) {
 
       // Pick a random class and method
-      Class<?> curClass = classes.get(new Random().nextInt(classes.size()));
-      Method[] methods = curClass.getDeclaredMethods();
+      Class<?> cls = classes.get(new Random().nextInt(classes.size()));
+      Method[] methods = cls.getDeclaredMethods();
       if (methods.length == 0) continue; 
 
       Method m = methods[new Random().nextInt(methods.length)];
