@@ -19,6 +19,12 @@ public class Sequence {
     return newSeq;
   }
 
+  public void execute() throws Exception {
+    for (MethodCall m : methodCalls) {
+      m.execute();
+    }
+  }
+
   // TODO: Properly format as a testcase
   public String toCode() {
     StringBuilder code = new StringBuilder();

@@ -24,6 +24,14 @@ public final class MethodCall {
   public Object getResult() {
     return result;
   }
+
+  public void execute() throws Exception {
+    // Get the receiver from the first argument if the method is static
+    Object receiver = isStatic ? null : args.get(0);
+    List<Object> actualArgs = isStatic ? args : args.subList(1, args.size());
+
+    result = method.invoke(receiver, actualArgs);
+  }
   
   public String toCode() {
     StringBuilder code = new StringBuilder();
