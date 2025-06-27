@@ -35,7 +35,8 @@ public class Main
     List<Sequence> sequences = SequenceGenerator.generateSequences(classes, 1000, 10);
     // TODO: don't just print this, use their toCode method to output the sequences into a test suite
     for (Sequence seq : sequences) {
-      System.out.println("Generated Sequence with last method: " + seq.methodCalls.get(seq.methodCalls.size() - 1));
+      System.out.println("Generated Sequence: ");
+      System.out.println(seq.toCode());
     }
 
 

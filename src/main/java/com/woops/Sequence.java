@@ -18,4 +18,13 @@ public class Sequence {
     newSeq.methodCalls.add(new MethodCall(m, args.toArray()));
     return newSeq;
   }
+
+  // TODO: Properly format as a testcase
+  public String toCode() {
+    StringBuilder code = new StringBuilder();
+    for (MethodCall s : methodCalls) {
+      code.append(s.toCode()).append(";\n");
+    }
+    return code.toString();
+  }
 }
