@@ -9,7 +9,7 @@ import java.util.List;
   * Represents a method call within a sequence.
   * * Includes its arguments and return value (result).
   */
-public final class MethodCall {
+public final class MethodCall extends Statement {
   private final Method method;
   private final List<Object> args;
   private final boolean isStatic;
