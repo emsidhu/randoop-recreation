@@ -30,13 +30,13 @@ public class SequenceGenerator {
       Method[] methods = cls.getDeclaredMethods();
       if (methods.length == 0) continue; 
 
-      Method m = methods[new Random().nextInt(methods.length)];
+      Method method = methods[new Random().nextInt(methods.length)];
       
       List<Sequence> seqs = new ArrayList<>();
       List<Object> args = new ArrayList<>();
 
       // Make a receiver the first argument for non-static methods
-      if (!Modifier.isStatic(m.getModifiers())) {
+      if (!Modifier.isStatic(method.getModifiers())) {
         try {
           // TODO: Make this work even when there is no default constructor
           Constructor<?> constructor = cls.getDeclaredConstructor();
@@ -50,10 +50,10 @@ public class SequenceGenerator {
       
       // TODO: Allow use of methodCall return values in newSeq (if return value is needed) and 
         // pass in utilized sequences to extend 
-      for (Class<?> type : m.getParameterTypes()) {
+      for (Class<?> type : method.getParameterTypes()) {
         args.add(getRandomValue(type));
       }
-      Sequence newSeq = Sequence.extend(m, seqs, args);
+      Sequence newSeq = Sequence.extend(method, seqs, args);
 
       try {
         newSeq.execute();
