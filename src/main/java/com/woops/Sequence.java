@@ -25,17 +25,21 @@ public class Sequence {
     }
   }
 
-  // TODO: Properly format as a testcase
+  // properly formats each test case
   public String toCode() {
     StringBuilder code = new StringBuilder();
-    for (MethodCall s : methodCalls) {
-      code.append(s.toCode()).append(";\n");
-      if (s.getResult() != null) {
-        code.append("Return value: ").append(s.getResult().toString()).append("\n\n");
-      } else {
-        code.append("No return value\n\n");
-      }
+
+    // Unique method name
+    String methodName = "generatedTest_" + Math.abs(hashCode());
+
+    code.append("  @org.junit.jupiter.api.Test\n");
+    code.append("  public void ").append(methodName).append("() throws Throwable {\n");
+
+    for (MethodCall call : methodCalls) {
+      code.append("    ").append(call.toCode()).append(";\n");
     }
+
+    code.append("  }\n");
     return code.toString();
   }
 }

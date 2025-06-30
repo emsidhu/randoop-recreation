@@ -1,6 +1,12 @@
 package com.woops;
 
 import java.io.File;
+import java.io.BufferedWriter;
+import java.nio.file.Files;
+import java.io.IOException;        // add this import
+import java.nio.file.*;            // already present
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -8,7 +14,7 @@ import java.util.List;
 
 public class Main 
 {
-  public static void main( String[] args ) {
+  public static void main(String[] args) throws Exception  {
     // TODO: Add checks to ensure arguments are correctly passed
     // TODO: Allow arguments to be passed in using flags
     // TODO: Allow people to pass in multiple class names
@@ -36,22 +42,67 @@ public class Main
     classes.add(cls);
     
     Pair<List<Sequence>,List<Sequence>> sequencePair = SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
-    // TODO: don't just print this, use their toCode method to output the sequences into a test suite
-    System.out.println("Valid Sequences: ");
-    for (Sequence seq : sequencePair.first) {
-      System.out.println("Generated Sequence: ");
-      System.out.println(seq.toCode());
+    // Generates the test suite
+    String suiteClassName = "GeneratedTests";
+    String outDir  = "./target/generated-sources";
+    try {
+      
+      Path   dirPath = Paths.get(outDir);
+      Files.createDirectories(dirPath);
+      Path   filePath = dirPath.resolve(suiteClassName + ".java");
+
+      try (BufferedWriter w = Files.newBufferedWriter(filePath)) {
+
+        w.write("""
+                import org.junit.jupiter.api.Assertions;
+                import org.junit.jupiter.api.Test;
+
+                public class %s {
+                """.formatted(suiteClassName));
+
+        System.out.println("Valid Sequences: ");
+        for (Sequence seq : sequencePair.first) {
+          w.write(seq.toCode());
+          w.newLine();
+        }
+
+        System.out.println();
+        System.out.println("Invalid (Error-Causing / Contract Violating) Sequences: ");
+        for (Sequence seq : sequencePair.second) {
+
+          // unique method name so we do not collide with toCode() names
+          String testName = "generatedInvalidTest_" + Math.abs(seq.hashCode());
+
+          w.write("""
+                    @Test
+                    public void %s() {
+                      Assertions.assertThrows(Throwable.class, () -> {
+                """.formatted(testName));
+
+          // indent each generated statement by four more spaces
+          for (String line : seq.toCode().split("\\R")) {
+            w.write("        " + line);
+            w.newLine();
+          }
+
+          w.write("""
+                      });
+                    }
+                  """);
+          w.newLine();
+        }
+
+        // close class
+        w.write("}");
+      }
+
+      System.out.printf("Wrote %d valid and %d invalid sequences to %s%n",
+          sequencePair.first.size(), sequencePair.second.size(), filePath);
+
+    } catch (IOException ioe) {
+      System.err.println("Failed to write generated tests: " + ioe.getMessage());
+      ioe.printStackTrace();
     }
-    System.out.println();
-    System.out.println("Invalid (Error-Causing / Contract Violating) Sequences: ");
-    for (Sequence seq : sequencePair.second) {
-      System.out.println("Generated Sequence: ");
-      System.out.println(seq.toCode());
-    }
-
-
-
-
   }
 
   // Returns a Class 
