@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Sequence {
-  public final List<MethodCall> methodCalls = new ArrayList<>();
+  public final List<Statement> statements = new ArrayList<>();
 
   public Sequence() {
   }
@@ -13,15 +13,15 @@ public class Sequence {
   public static Sequence extend(Method m, List<Sequence> seqs, List<Object> args) {
     Sequence newSeq = new Sequence();
     for (Sequence seq : seqs) {
-      newSeq.methodCalls.addAll(seq.methodCalls);
+      newSeq.statements.addAll(seq.statements);
     }
-    newSeq.methodCalls.add(new MethodCall(m, args));
+    newSeq.statements.add(new MethodCall(m, args));
     return newSeq;
   }
 
   public void execute() throws Exception {
-    for (MethodCall m : methodCalls) {
-      m.execute();
+    for (Statement stmt : statements) {
+      stmt.execute();
     }
   }
 
@@ -35,8 +35,8 @@ public class Sequence {
     code.append("  @org.junit.jupiter.api.Test\n");
     code.append("  public void ").append(methodName).append("() throws Throwable {\n");
 
-    for (MethodCall call : methodCalls) {
-      code.append("    ").append(call.toCode()).append(";\n");
+    for (Statement stmt : statements) {
+      code.append("    ").append(stmt.toCode()).append(";\n");
     }
 
     code.append("  }\n");
