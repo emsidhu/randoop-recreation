@@ -1,11 +1,9 @@
 package com.woops;
 
 public class ConstantAssignment extends Statement {
-    private final Object value;
 
-    public ConstantAssignment(Object value, Class<?> type) {
-        this.value = value;
-        this.result = value; // already known; no need to execute
+    public ConstantAssignment(Object value) {
+        this.result = value; 
     }
 
     @Override
@@ -15,6 +13,6 @@ public class ConstantAssignment extends Statement {
 
     @Override
     public String toCode() {
-        return (value == null) ? "null" : value.toString();
+        return (result == null) ? "null" : result.toString();
     }
 }
