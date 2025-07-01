@@ -7,6 +7,7 @@ public class ConstructorCall extends Statement {
   private final List<Object> args; 
 
   public ConstructorCall(Constructor<?> constructor, List<Object> args) {
+    super(constructor.getDeclaringClass()); // initialize type
     this.constructor = constructor;
     this.args = args;
   }
@@ -15,7 +16,7 @@ public class ConstructorCall extends Statement {
   public void execute() throws Exception {
       result = constructor.newInstance(args.toArray());
   }
-  
+
   @Override
   public String toCode() { 
     return "";

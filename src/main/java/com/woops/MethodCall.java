@@ -14,6 +14,7 @@ public final class MethodCall extends Statement {
   private final boolean isStatic;
 
   public MethodCall(Method method, List<Object> args) {
+    super(method.getReturnType()); // initialize type
     this.method = method;
     this.args = args;
     isStatic = Modifier.isStatic(method.getModifiers());
