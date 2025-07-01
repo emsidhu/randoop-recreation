@@ -2,7 +2,6 @@ package com.woops;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.List;
 
 /** 
@@ -11,7 +10,7 @@ import java.util.List;
   */
 public final class MethodCall extends Statement {
   private final Method method;
-  private final List<Object> args;
+  private final List<Object> args; 
   private final boolean isStatic;
   private Object result;
 

@@ -37,10 +37,10 @@ public class SequenceGenerator {
 
       // Make a receiver the first argument for non-static methods
       if (!Modifier.isStatic(method.getModifiers())) {
-        try {
+        try { 
           // TODO: Make this work even when there is no default constructor
           Constructor<?> constructor = cls.getDeclaredConstructor();
-          Object receiver = constructor.newInstance();
+          Object receiver = constructor.newInstance(); // Class whatever = new Class();
           args.add(receiver);
         } catch (Exception e) {
           continue;
