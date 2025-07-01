@@ -12,7 +12,6 @@ public final class MethodCall extends Statement {
   private final Method method;
   private final List<Object> args; 
   private final boolean isStatic;
-  private Object result;
 
   public MethodCall(Method method, List<Object> args) {
     this.method = method;
@@ -20,10 +19,7 @@ public final class MethodCall extends Statement {
     isStatic = Modifier.isStatic(method.getModifiers());
   }
 
-  public Object getResult() {
-    return result;
-  }
-
+  @Override
   public void execute() throws Exception {
     // Get the receiver from the first argument if the method is static
     Object receiver = isStatic ? null : args.get(0);
@@ -31,6 +27,7 @@ public final class MethodCall extends Statement {
     result = method.invoke(receiver, actualArgs.toArray());
   }
   
+  @Override
   public String toCode() {
     StringBuilder code = new StringBuilder();
     // If the Method is static, it's called on the class name
