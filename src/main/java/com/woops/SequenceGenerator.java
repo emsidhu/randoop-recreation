@@ -75,7 +75,7 @@ public class SequenceGenerator {
     if (type == int.class || type == Integer.class) return rand.nextInt(10);
     if (type == boolean.class || type == Boolean.class) return rand.nextBoolean();
     if (type == char.class || type == Character.class) return (char) ('a' + rand.nextInt(26));
-    if (type == String.class) return "str" + rand.nextInt(100);
+    if (type == String.class) return "\"str" + rand.nextInt(100) + "\""; 
     return null; // for other object types
   }
 }

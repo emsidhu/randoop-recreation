@@ -34,10 +34,19 @@ public class Sequence {
 
     code.append("  @org.junit.jupiter.api.Test\n");
     code.append("  public void ").append(methodName).append("() throws Throwable {\n");
-
-    for (Statement stmt : statements) {
-      code.append("    ").append(stmt.toCode()).append(";\n");
-    }
+    code.append("    com.demo.TestClass obj = new com.demo.TestClass();\n");
+    // we should probably assert that invalid tests throw and error but i'm not sure how
+    // if(valid ){
+      for (Statement stmt : statements) {
+        code.append("    ").append(stmt.toCode()).append(";\n");
+      }
+    // } else {
+  // @org.junit.jupiter.api.Test
+  // public void generatedInvalidTest_1897789231() throws Throwable {
+  //   Assertions.assertThrows(Throwable.class, () -> {
+  //     com.demo.TestClass.crash();
+  // });
+    // }
 
     code.append("  }\n");
     return code.toString();
