@@ -24,6 +24,7 @@ public class SequencePool {
     }
   }
 
+  // Returns a Sequence containing a Statement with a return value of targetType
   public Sequence findSequenceOfType(Class<?> targetType) {
     List<Sequence> candidates = typeIndex.get(targetType);
     if (candidates == null) candidates = new ArrayList<>();
@@ -48,12 +49,8 @@ public class SequencePool {
     return candidates.get(random.nextInt(candidates.size()));
   }
 
-  public Statement findStatementOfType(Class<?> targetType) {
-    Sequence seq = findSequenceOfType(targetType);
-    if (seq == null) {
-      return null;
-    }
-
+  // Returns the statement in seq with return type of targetType
+  public Statement findStatementOfType(Sequence seq, Class<?> targetType) {
     // Get all statements of targetType from the sequence
     List<Statement> candidates = new ArrayList<>();
     for (Statement stmt : seq.statements) {
