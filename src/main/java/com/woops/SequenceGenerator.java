@@ -19,6 +19,8 @@ public class SequenceGenerator {
   public static Pair<List<Sequence>,List<Sequence>> generateSequences(List<Class<?>> classes, long timeLimit, int maxSequences) {
     List<Sequence> errorSeqs = new ArrayList<>();
     List<Sequence> nonErrorSeqs = new ArrayList<>();
+    SequencePool pool = new SequencePool();
+
     long startTime = System.currentTimeMillis();
     int sequenceCount = 0;
 
@@ -37,27 +39,45 @@ public class SequenceGenerator {
 
       // Make a receiver the first argument for non-static methods
       if (!Modifier.isStatic(method.getModifiers())) {
-        try { 
-          // TODO: Make this work even when there is no default constructor
-          Constructor<?> constructor = cls.getDeclaredConstructor();
-          Object receiver = constructor.newInstance(); // Class whatever = new Class();
-          args.add(receiver);
-        } catch (Exception e) {
-          continue;
+        Sequence receiverSequence = pool.findSequenceOfType(cls);
+        if (receiverSequence != null) {
+          seqs.add(receiverSequence);
+          // Get the required value out of the sequence
+          Statement receiverStmt = pool.findStatementOfType(receiverSequence, cls);
+          args.add(receiverStmt.getResult());
+        } else { 
+          try { 
+            // TODO: Make this work for constructors that need arguments as well
+            Constructor<?> constructor = cls.getDeclaredConstructor();
+            Sequence constructorSeq = new Sequence();
+            Statement constructorStmt = new ConstructorCall(constructor, new ArrayList<>());
+            constructorSeq.statements.add(constructorStmt);
+            constructorSeq.execute();
+            seqs.add(constructorSeq);
+            args.add(constructorStmt.getResult());
+          } catch (Exception e) {
+            continue;
+          }
         }
       }
       
       
-      // TODO: Allow use of methodCall return values in newSeq (if return value is needed) and 
-        // pass in utilized sequences to extend 
       for (Class<?> type : method.getParameterTypes()) {
-        args.add(getRandomValue(type));
+        Sequence argSequence = pool.findSequenceOfType(type);
+        if (argSequence != null) {
+          seqs.add(argSequence);
+          Statement argStmt = pool.findStatementOfType(argSequence, type);
+          args.add(argStmt.getResult());
+        } else {
+          args.add(getRandomValue(type));
+        }
       }
       Sequence newSeq = Sequence.extend(method, seqs, args);
 
       try {
         newSeq.execute();
         nonErrorSeqs.add(newSeq);
+        pool.addSequence(newSeq);
         sequenceCount++;
       } catch (Exception e) {
         // If an error occurs, add to errorSeqs
@@ -78,4 +98,5 @@ public class SequenceGenerator {
     if (type == String.class) return "\"str" + rand.nextInt(100) + "\""; 
     return null; // for other object types
   }
+
 }
