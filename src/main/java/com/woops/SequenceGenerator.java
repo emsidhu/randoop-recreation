@@ -116,10 +116,10 @@ public class SequenceGenerator {
 
   // Returns a random value for the given type.
   private static Object getRandomValue(Class<?> type) {
-    if (type == int.class || type == Integer.class) return random.nextInt(1000) * (int) Math.signum(random.nextInt());
+    if (type == int.class || type == Integer.class) return random.nextInt(100) * (int) Math.signum(random.nextInt());
     if (type == boolean.class || type == Boolean.class) return random.nextBoolean();
     if (type == char.class || type == Character.class) return (char) (32 + random.nextInt(95));
-    if (type == String.class) return "\"" + generateRandomString(random.nextInt(50)) + "\""; 
+    if (type == String.class) return generateRandomString(random.nextInt(50)); 
     return null; // for other object types
   }
 

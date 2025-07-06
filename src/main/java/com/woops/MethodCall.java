@@ -27,6 +27,8 @@ public final class MethodCall extends Statement {
     List<Object> actualArgs = isStatic ? args : args.subList(1, args.size());
     result = method.invoke(receiver, actualArgs.toArray());
   }
+
+
   
   @Override
   public String toCode() {
@@ -40,7 +42,7 @@ public final class MethodCall extends Statement {
     code.append(".").append(method.getName()).append("(");
     // Don't include the first arg (the receiver) if the method isn't static
     for (int i = (isStatic ? 0 : 1); i < args.size(); i++) {
-      code.append(args.get(i));
+      code.append(addQuotes(args.get(i)));
       if (i < args.size() - 1) code.append(", ");
     }
     code.append(")");
