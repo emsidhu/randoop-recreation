@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 public class SequenceGenerator {
+  private final static Random random = new Random();
   /** 
     * Generates a list of sequences from the given classes.
     *
@@ -89,13 +90,24 @@ public class SequenceGenerator {
     return new Pair<>(nonErrorSeqs, errorSeqs);
   }
 
+  // Returns a random string
+  private static String generateRandomString(int length) {
+    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = 0; i < length; i++) {
+      int index = random.nextInt(characters.length());
+      sb.append(characters.charAt(index));
+    }
+    return sb.toString();
+  }
+
   // Returns a random value for the given type.
   private static Object getRandomValue(Class<?> type) {
-    Random rand = new Random();
-    if (type == int.class || type == Integer.class) return rand.nextInt(10);
-    if (type == boolean.class || type == Boolean.class) return rand.nextBoolean();
-    if (type == char.class || type == Character.class) return (char) ('a' + rand.nextInt(26));
-    if (type == String.class) return "\"str" + rand.nextInt(100) + "\""; 
+    if (type == int.class || type == Integer.class) return random.nextInt(1000) * (int) Math.signum(random.nextInt());
+    if (type == boolean.class || type == Boolean.class) return random.nextBoolean();
+    if (type == char.class || type == Character.class) return (char) (32 + random.nextInt(95));
+    if (type == String.class) return "\"" + generateRandomString(random.nextInt(50)) + "\""; 
     return null; // for other object types
   }
 
