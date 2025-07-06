@@ -10,6 +10,10 @@ public class Sequence {
   public Sequence() {
   }
 
+  public void concat(Sequence seq) {
+    this.statements.addAll(seq.statements);
+  }
+
   public static Sequence extend(Method m, List<Sequence> seqs, List<Object> args) {
     Sequence newSeq = new Sequence();
     for (Sequence seq : seqs) {
