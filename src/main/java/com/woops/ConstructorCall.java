@@ -19,6 +19,15 @@ public class ConstructorCall extends Statement {
 
   @Override
   public String toCode() { 
-    return "";
+    StringBuilder code = new StringBuilder();
+    code.append("new ");
+    code.append(constructor.getName());
+    code.append("(");
+    for (int i = 0; i < args.size(); i++) {
+      code.append(args.get(i));
+      if (i < args.size() - 1) code.append(", ");
+    }
+    code.append(")");
+    return code.toString();
   }
 }
