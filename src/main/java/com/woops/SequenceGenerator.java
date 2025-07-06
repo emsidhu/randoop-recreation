@@ -35,14 +35,14 @@ public class SequenceGenerator {
 
       Method method = methods[new Random().nextInt(methods.length)];
       
-      List<Sequence> seqs = new ArrayList<>();
+      Sequence newSeq = new Sequence();
       List<Object> args = new ArrayList<>();
 
       // Make a receiver the first argument for non-static methods
       if (!Modifier.isStatic(method.getModifiers())) {
         Sequence receiverSequence = pool.findSequenceOfType(cls);
         if (receiverSequence != null) {
-          seqs.add(receiverSequence);
+          newSeq.concat(receiverSequence);
           // Get the required value out of the sequence
           Statement receiverStmt = pool.findStatementOfType(receiverSequence, cls);
           args.add(receiverStmt.getResult());
@@ -50,11 +50,10 @@ public class SequenceGenerator {
           try { 
             // TODO: Make this work for constructors that need arguments as well
             Constructor<?> constructor = cls.getDeclaredConstructor();
-            Sequence constructorSeq = new Sequence();
             Statement constructorStmt = new ConstructorCall(constructor, new ArrayList<>());
-            constructorSeq.statements.add(constructorStmt);
-            constructorSeq.execute();
-            seqs.add(constructorSeq);
+            newSeq.statements.add(constructorStmt);
+            
+            constructorStmt.execute();
             args.add(constructorStmt.getResult());
           } catch (Exception e) {
             continue;
@@ -64,16 +63,29 @@ public class SequenceGenerator {
       
       
       for (Class<?> type : method.getParameterTypes()) {
-        Sequence argSequence = pool.findSequenceOfType(type);
-        if (argSequence != null) {
-          seqs.add(argSequence);
-          Statement argStmt = pool.findStatementOfType(argSequence, type);
+        // 50% chance to use a random value regardless of usable statements
+        if (random.nextBoolean()) {
+          args.add(getRandomValue(type));
+          continue;
+        }
+
+        // Check if current sequence contains usable statement
+        Statement argStmt = pool.findStatementOfType(newSeq, type);
+        if (argStmt != null) {
           args.add(argStmt.getResult());
         } else {
-          args.add(getRandomValue(type));
+          // Otherwise, check pool
+          Sequence argSequence = pool.findSequenceOfType(type);
+          if (argSequence != null) {
+            newSeq.concat(argSequence);
+            argStmt = pool.findStatementOfType(argSequence, type);
+            args.add(argStmt.getResult());
+          } else {
+            args.add(getRandomValue(type));
+          }
         }
       }
-      Sequence newSeq = Sequence.extend(method, seqs, args);
+      newSeq.statements.add(new MethodCall(method, args));
 
       try {
         newSeq.execute();
