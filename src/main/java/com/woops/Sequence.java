@@ -31,8 +31,8 @@ public class Sequence {
     try {
       for (Statement stmt : statements) {
         stmt.execute();
-        // Update lastResult： Statement.getReturnValue
-        lastResult = stmt.getReturnValue();
+        // Update lastResult： Statement.getResult
+        lastResult = stmt.getResult();
       }
       threwException = false;
     } catch (Exception e) {

@@ -22,10 +22,6 @@ public abstract class Statement {
   public Object getResult() {
     return result;
   }
-  //update for filter
-  public Object getReturnValue() {
-    return null;
-  }
 
   public abstract String toCode();
 
