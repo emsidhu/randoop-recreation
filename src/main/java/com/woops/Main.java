@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.BufferedWriter;
 import java.nio.file.Files;
 import java.io.IOException;        // add this import
-import java.nio.file.*;            // already present
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.net.URL;
@@ -18,7 +17,7 @@ public class Main
     // TODO: Add checks to ensure arguments are correctly passed
     // TODO: Allow arguments to be passed in using flags
     // TODO: Allow people to pass in multiple class names
-    
+
     if (args.length < 2) {
       System.err.println("Error: Too few arguments, need class directory and name");
       return;
@@ -40,7 +39,7 @@ public class Main
     Class<?> cls = getClassFromFile(classDir, className);
     if (cls == null) return;
     classes.add(cls);
-    
+
     Pair<List<Sequence>,List<Sequence>> sequencePair = SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
     // Generates the test suite
     String suiteClassName = "GeneratedTests";
@@ -113,6 +112,5 @@ public class Main
       System.err.println("Error loading class: " + e.getMessage());
       return null;
     }
-    
   }
 }

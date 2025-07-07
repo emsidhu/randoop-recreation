@@ -48,7 +48,7 @@ public class SequenceGenerator {
       if (!Modifier.isStatic(method.getModifiers())) {
         try {
           Constructor<?> constructor = cls.getDeclaredConstructor();
-          Object receiver = constructor.newInstance();
+          Object receiver = constructor.newInstance(); // Class whatever = new Class();
           args.add(receiver);
         } catch (Exception e) {
           continue;
