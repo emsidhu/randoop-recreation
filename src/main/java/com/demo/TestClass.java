@@ -4,16 +4,12 @@ public class TestClass {
 
   public TestClass() {}
 
-  public int add(int x, int y) {
+  public static int add(int x, int y) {
     return x + y;
   }
 
   public static String repeat(String s, int times) {
       return s.repeat(times);
-  }
-
-  public static int add(int a, int b) {
-    return a + b; // Should pass all filters
   }
 
   public static int divide(int a, int b) {
