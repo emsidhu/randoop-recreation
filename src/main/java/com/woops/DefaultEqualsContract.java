@@ -1,4 +1,4 @@
-package com.woops.contracts;
+package com.woops;
 
 // o.equals(o) must return true and must not throw execption
 public final class DefaultEqualsContract implements Contract {

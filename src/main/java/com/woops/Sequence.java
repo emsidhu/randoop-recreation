@@ -21,9 +21,15 @@ public class Sequence {
 
   public void execute() throws Exception {
     for (Statement stmt : statements) {
+      // logging the type
+      System.out.printf("→ Executing %s (%s)%n",
+          stmt.getClass().getSimpleName(),
+          stmt.getType().getName());
+
       stmt.execute();
     }
   }
+
 
   // properly formats each test case
   public String toCode() {

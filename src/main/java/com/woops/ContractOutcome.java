@@ -1,4 +1,4 @@
-package com.woops.contracts;
+package com.woops;
 
 // PASS / FAIL / ERROR result of a contract evaluation.
 public final class ContractOutcome {
@@ -32,7 +32,7 @@ public final class ContractOutcome {
   public Status  getStatus() { 
     return status; 
   }
-  
+
   public String  getMessage() {
      return message; 
   }
