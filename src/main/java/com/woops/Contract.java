@@ -1,4 +1,4 @@
-package com.woops.contracts;
+package com.woops;
 
 
 public interface Contract {
