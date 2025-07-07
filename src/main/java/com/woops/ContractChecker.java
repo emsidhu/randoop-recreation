@@ -2,16 +2,12 @@ package com.woops;
 
 import java.util.List;
 
-// Thrown when a contract outcome is FAIL or ERROR
-public final class ContractViolationException extends RuntimeException {
-  public ContractViolationException(String msg) { super(msg); }
-}
 
 // Runs the default set of contracts and throws on any violation.
 public final class ContractChecker {
 
   private static final List<Contract> DEFAULT_CONTRACTS =
-      List.of(new ReflexiveEqualsContract());
+      List.of(new DefaultEqualsContract());
 
   private ContractChecker() {}
 
