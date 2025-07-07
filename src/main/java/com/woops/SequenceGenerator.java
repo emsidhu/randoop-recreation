@@ -1,5 +1,7 @@
 package com.woops;
 
+import com.woops.filters.*; 
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -15,27 +17,35 @@ public class SequenceGenerator {
     * @param classes List of classes to generate sequences from.
     * @param timeLimit Time limit in milliseconds.
     * @param maxSequences Maximum number of sequences to generate.
-    * @return A Pair containing a list of the valid, and error causing, Sequences
+    * @return A Pair containing a list of the valid, and error-causing, Sequences
   */
-  public static Pair<List<Sequence>,List<Sequence>> generateSequences(List<Class<?>> classes, long timeLimit, int maxSequences) {
+  public static Pair<List<Sequence>, List<Sequence>> generateSequences(List<Class<?>> classes, long timeLimit, int maxSequences) {
     List<Sequence> errorSeqs = new ArrayList<>();
-    List<Sequence> nonErrorSeqs = new ArrayList<>();
     SequencePool pool = new SequencePool();
+    List<Sequence> validSeqs = new ArrayList<>();
 
     long startTime = System.currentTimeMillis();
     int sequenceCount = 0;
 
-    while (System.currentTimeMillis() - startTime < timeLimit && 
-        sequenceCount < maxSequences) {
+    // ✅ 初始化默认 filters
+    List<Filter> filters = List.of(
+        new ExceptionFilter(),
+        new NullFilter(),
+        new EqualityFilter()
+    );
+
+    while (System.currentTimeMillis() - startTime < timeLimit &&
+           sequenceCount < maxSequences) {
 
       // Pick a random class and method
       Class<?> cls = classes.get(new Random().nextInt(classes.size()));
       Method[] methods = cls.getDeclaredMethods();
-      if (methods.length == 0) continue; 
+      if (methods.length == 0) continue;
 
       Method method = methods[new Random().nextInt(methods.length)];
-      
+
       Sequence newSeq = new Sequence();
+
       List<Object> args = new ArrayList<>();
 
       // Make a receiver the first argument for non-static methods
@@ -56,12 +66,12 @@ public class SequenceGenerator {
             constructorStmt.execute();
             args.add(constructorStmt.getResult());
           } catch (Exception e) {
+            System.err.println("CONTRACT FAIL " + e.getMessage());
             continue;
           }
         }
       }
-      
-      
+
       for (Class<?> type : method.getParameterTypes()) {
         // 50% chance to use a random value regardless of usable statements
         if (random.nextBoolean()) {
@@ -85,21 +95,41 @@ public class SequenceGenerator {
           }
         }
       }
+
       newSeq.statements.add(new MethodCall(method, args));
 
       try {
+        // execute sequence
         newSeq.execute();
-        nonErrorSeqs.add(newSeq);
-        pool.addSequence(newSeq);
+
+        // apply filters to do the judgement
+        boolean passedAll = true;
+        for (Filter f : filters) {
+          if (!f.isValid(newSeq)) {
+            System.out.println("Sequence filtered by " + f.getName());
+            passedAll = false;
+            break;
+          }
+        }
+
+        if (passedAll) {
+          System.out.println("Sequence accepted:");
+          System.out.println(newSeq.toCode());
+          validSeqs.add(newSeq);
+          pool.addSequence(newSeq);
+        } else {
+          errorSeqs.add(newSeq);
+        }
+
         sequenceCount++;
+
       } catch (Exception e) {
-        // If an error occurs, add to errorSeqs
-        System.out.println("Error: " + e);
+        System.out.println("Exception during execution: " + e);
         errorSeqs.add(newSeq);
       }
     }
 
-    return new Pair<>(nonErrorSeqs, errorSeqs);
+    return new Pair<>(validSeqs, errorSeqs);
   }
 
   // Returns a random string

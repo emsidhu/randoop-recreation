@@ -7,6 +7,10 @@ import java.util.List;
 public class Sequence {
   public final List<Statement> statements = new ArrayList<>();
 
+  // for filters
+  private Object lastResult = null;
+  private boolean threwException = false;
+
   public Sequence() {
   }
 
@@ -23,10 +27,26 @@ public class Sequence {
     return newSeq;
   }
 
-  public void execute() throws Exception {
-    for (Statement stmt : statements) {
-      stmt.execute();
+  public void execute() {
+    try {
+      for (Statement stmt : statements) {
+        stmt.execute();
+        // Update lastResult： Statement.getReturnValue
+        lastResult = stmt.getReturnValue();
+      }
+      threwException = false;
+    } catch (Exception e) {
+      threwException = true;
     }
+  }
+
+  //  getter for filter
+  public Object getLastResult() {
+    return lastResult;
+  }
+
+  public boolean throwsException() {
+    return threwException;
   }
 
   // properly formats each test case

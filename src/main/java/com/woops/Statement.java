@@ -19,11 +19,15 @@ public abstract class Statement {
 
   public abstract void execute() throws Exception;
 
-  public abstract String toCode();
-
   public Object getResult() {
-      return result;
+    return result;
   }
+  //update for filter
+  public Object getReturnValue() {
+    return null;
+  }
+
+  public abstract String toCode();
 
   public Class<?> getType() {
     return type;
