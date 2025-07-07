@@ -41,6 +41,7 @@ public class Main
     classes.add(cls);
 
     Pair<List<Sequence>,List<Sequence>> sequencePair = SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
+
     // Generates the test suite
     String suiteClassName = "GeneratedTests";
     String outDir  = "./target/generated-sources";
@@ -53,6 +54,7 @@ public class Main
       try (BufferedWriter w = Files.newBufferedWriter(filePath)) {
 
         w.write("""
+                package com.demo;
                 import org.junit.jupiter.api.Assertions;
                 import org.junit.jupiter.api.Test;
 
@@ -68,26 +70,7 @@ public class Main
         System.out.println();
         System.out.println("Invalid (Error-Causing / Contract Violating) Sequences: ");
         for (Sequence seq : sequencePair.second) {
-
-          // unique method name so we do not collide with toCode() names
-          String testName = "generatedInvalidTest_" + Math.abs(seq.hashCode());
-
-          w.write("""
-                    @Test
-                    public void %s() {
-                      Assertions.assertThrows(Throwable.class, () -> {
-                """.formatted(testName));
-
-          // indent each generated statement by four more spaces
-          for (String line : seq.toCode().split("\\R")) {
-            w.write("        " + line);
-            w.newLine();
-          }
-
-          w.write("""
-                      });
-                    }
-                  """);
+          w.write(seq.toCode());
           w.newLine();
         }
 

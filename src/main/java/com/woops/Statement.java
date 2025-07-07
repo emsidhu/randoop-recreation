@@ -11,6 +11,12 @@ public abstract class Statement {
     this.type = type;
   }
 
+  protected Object addQuotes(Object obj) {
+    if (obj instanceof String) return "\"" + (String) obj + "\"";
+    if (obj instanceof Character) return "'" + obj + "'";
+    return obj; 
+  }
+
   public abstract void execute() throws Exception;
 
   public Object getResult() {
