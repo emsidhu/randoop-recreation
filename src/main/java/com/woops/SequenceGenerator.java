@@ -51,6 +51,7 @@ public class SequenceGenerator {
           Object receiver = constructor.newInstance(); // Class whatever = new Class();
           args.add(receiver);
         } catch (Exception e) {
+          System.err.println("CONTRACT FAIL " + e.getMessage());
           continue;
         }
       }
