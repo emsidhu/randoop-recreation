@@ -1,14 +1,27 @@
+# Maven build directory
 target/
+
+# Maven backup files
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
 pom.xml.next
 
-### VS Code ###
+# IDE settings
 .vscode/
-
-# Eclipse m2e generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
+.idea/
 .classpath
+.project
+
+# OS/system files
+.DS_Store
+Thumbs.db
+
+# Java compiled classes
+*.class
+
+# Auto-generated test output
+**/GeneratedTests.java
+
+# Logs / debug output
+*.log
