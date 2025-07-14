@@ -82,14 +82,14 @@ public class SequenceGenerator {
         // Check if current sequence contains usable statement
         Statement argStmt = pool.findStatementOfType(newSeq, type);
         if (argStmt != null) {
-          args.add(new Argument(argStmt.getResult()));
+          args.add(new Argument(argStmt));
         } else {
           // Otherwise, check pool
           Sequence argSequence = pool.findSequenceOfType(type);
           if (argSequence != null) {
             newSeq.concat(argSequence);
             argStmt = pool.findStatementOfType(argSequence, type);
-            args.add(new Argument(argStmt.getResult()));
+            args.add(new Argument(argStmt));
           } else {
             args.add(new Argument(getRandomValue(type)));
           }
