@@ -4,9 +4,9 @@ import java.util.List;
 
 public class ConstructorCall extends Statement {
   private final Constructor<?> constructor;
-  private final List<Object> args; 
+  private final List<Argument> args; 
 
-  public ConstructorCall(Constructor<?> constructor, List<Object> args) {
+  public ConstructorCall(Constructor<?> constructor, List<Argument> args) {
     super(constructor.getDeclaringClass()); // initialize type
     this.constructor = constructor;
     this.args = args;
@@ -14,7 +14,7 @@ public class ConstructorCall extends Statement {
 
   @Override
   public void execute() throws Exception {
-      result = constructor.newInstance(args.toArray());
+      result = constructor.newInstance(args.stream().map(Argument::getValue).toArray());
 
       // Checks contracts on new object
       ContractChecker.checkAll(result);
@@ -27,7 +27,7 @@ public class ConstructorCall extends Statement {
     code.append(constructor.getName());
     code.append("(");
     for (int i = 0; i < args.size(); i++) {
-      code.append(addQuotes(args.get(i)));
+      code.append(addQuotes(args.get(i).getValue()));
       if (i < args.size() - 1) code.append(", ");
     }
     code.append(")");

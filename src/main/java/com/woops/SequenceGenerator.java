@@ -46,7 +46,7 @@ public class SequenceGenerator {
 
       Sequence newSeq = new Sequence();
 
-      List<Object> args = new ArrayList<>();
+      List<Argument> args = new ArrayList<>();
 
       // Make a receiver the first argument for non-static methods
       if (!Modifier.isStatic(method.getModifiers())) {
@@ -55,7 +55,7 @@ public class SequenceGenerator {
           newSeq.concat(receiverSequence);
           // Get the required value out of the sequence
           Statement receiverStmt = pool.findStatementOfType(receiverSequence, cls);
-          args.add(receiverStmt.getResult());
+          args.add(new Argument(receiverStmt));
         } else { 
           try { 
             // TODO: Make this work for constructors that need arguments as well
@@ -64,7 +64,7 @@ public class SequenceGenerator {
             newSeq.statements.add(constructorStmt);
             
             constructorStmt.execute();
-            args.add(constructorStmt.getResult());
+            args.add(new Argument(constructorStmt));
           } catch (Exception e) {
             System.err.println("CONTRACT FAIL " + e.getMessage());
             continue;
@@ -75,23 +75,23 @@ public class SequenceGenerator {
       for (Class<?> type : method.getParameterTypes()) {
         // 50% chance to use a random value regardless of usable statements
         if (random.nextBoolean()) {
-          args.add(getRandomValue(type));
+          args.add(new Argument(getRandomValue(type)));
           continue;
         }
 
         // Check if current sequence contains usable statement
         Statement argStmt = pool.findStatementOfType(newSeq, type);
         if (argStmt != null) {
-          args.add(argStmt.getResult());
+          args.add(new Argument(argStmt.getResult()));
         } else {
           // Otherwise, check pool
           Sequence argSequence = pool.findSequenceOfType(type);
           if (argSequence != null) {
             newSeq.concat(argSequence);
             argStmt = pool.findStatementOfType(argSequence, type);
-            args.add(argStmt.getResult());
+            args.add(new Argument(argStmt.getResult()));
           } else {
-            args.add(getRandomValue(type));
+            args.add(new Argument(getRandomValue(type)));
           }
         }
       }
