@@ -9,7 +9,9 @@ public final class ContractChecker {
   private static final List<Contract> DEFAULT_CONTRACTS = List.of(
       new DefaultEqualsContract(),
       new DefaultHashCodeContract(),
-      new DefaultToStringContract()
+      new DefaultToStringContract(),
+      new NoUnexpectedNpeContract(),
+      new NoAssertionErrorContract()
   );
 
   private ContractChecker() {}
