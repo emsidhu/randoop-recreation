@@ -18,7 +18,7 @@ public class Sequence {
     this.statements.addAll(seq.statements);
   }
 
-  public static Sequence extend(Method m, List<Sequence> seqs, List<Object> args) {
+  public static Sequence extend(Method m, List<Sequence> seqs, List<Argument> args) {
     Sequence newSeq = new Sequence();
     for (Sequence seq : seqs) {
       newSeq.statements.addAll(seq.statements);
