@@ -23,13 +23,27 @@ public class ConstructorCall extends Statement {
   @Override
   public String toCode() { 
     StringBuilder code = new StringBuilder();
+
+    // Save the result to a variable
+    code.append(constructor.getName())
+      .append(" ")
+      .append(getVariableName())
+      .append(" = ");
+
+
     code.append("new ");
     code.append(constructor.getName());
     code.append("(");
     for (int i = 0; i < args.size(); i++) {
-      code.append(addQuotes(args.get(i).getValue()));
+      Argument arg = args.get(0);
+      if (arg.hasStatement()) {
+        code.append(arg.getStatement().getVariableName());
+      } else {
+        code.append(addQuotes(args.get(i).getValue()));
+      }
       if (i < args.size() - 1) code.append(", ");
     }
+
     code.append(")");
     return code.toString();
   }

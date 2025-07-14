@@ -38,18 +38,35 @@ public final class MethodCall extends Statement {
   @Override
   public String toCode() {
     StringBuilder code = new StringBuilder();
+
+    // If it returns something, save it to a variable 
+    if (method.getReturnType() != void.class) {
+      code.append(method.getReturnType().getSimpleName())
+        .append(" ")
+        .append(getVariableName())
+        .append(" = ");
+    }
+
     // If the Method is static, it's called on the class name
     if (isStatic) {
       code.append(method.getDeclaringClass().getName());
-    } else { // Otherwise, it's called on an instance (always named obj for now)
-      code.append("obj");
+    } else { // Otherwise, it's called on an instance
+      Argument receiverArg = args.get(0);
+      code.append(receiverArg.getStatement().getVariableName());
     }
     code.append(".").append(method.getName()).append("(");
+
     // Don't include the first arg (the receiver) if the method isn't static
     for (int i = (isStatic ? 0 : 1); i < args.size(); i++) {
-      code.append(addQuotes(args.get(i).getValue()));
+      Argument arg = args.get(0);
+      if (arg.hasStatement()) {
+        code.append(arg.getStatement().getVariableName());
+      } else {
+        code.append(addQuotes(args.get(i).getValue()));
+      }
       if (i < args.size() - 1) code.append(", ");
     }
+
     code.append(")");
     return code.toString();
   }

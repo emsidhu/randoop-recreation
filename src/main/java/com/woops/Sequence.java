@@ -61,9 +61,16 @@ public class Sequence {
     code.append("    com.demo.TestClass obj = new com.demo.TestClass();\n");
     // we should probably assert that invalid tests throw and error but i'm not sure how
     // if(valid ){
-      for (Statement stmt : statements) {
-        code.append("    ").append(stmt.toCode()).append(";\n");
+    for (int i = 0; i < statements.size(); i++) {
+      Statement stmt = statements.get(i);
+      // Give the statement a corresponding variable name if needed
+      if (stmt.getType() != void.class) {
+        stmt.setVariableName("var" + i);
       }
+
+      code.append("    ").append(stmt.toCode()).append(";\n");
+    }
+
     // } else {
   // @org.junit.jupiter.api.Test
   // public void generatedInvalidTest_1897789231() throws Throwable {
