@@ -6,8 +6,11 @@ import java.util.List;
 // Runs the default set of contracts and throws on any violation.
 public final class ContractChecker {
 
-  private static final List<Contract> DEFAULT_CONTRACTS =
-      List.of(new DefaultEqualsContract());
+  private static final List<Contract> DEFAULT_CONTRACTS = List.of(
+      new DefaultEqualsContract(),
+      new DefaultHashCodeContract(),
+      new DefaultToStringContract()
+  );
 
   private ContractChecker() {}
 
