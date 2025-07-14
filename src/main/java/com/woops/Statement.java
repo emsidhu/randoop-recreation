@@ -6,6 +6,7 @@ package com.woops;
 public abstract class Statement {
   protected Object result;
   protected final Class<?> type;
+  private String variableName;
 
   protected Statement(Class<?> type) {
     this.type = type;
@@ -27,5 +28,13 @@ public abstract class Statement {
 
   public Class<?> getType() {
     return type;
+  }
+
+  public void setVariableName(String name) {
+    this.variableName = name;
+  }
+
+  public String getVariableName() {
+    return variableName;
   }
 }
