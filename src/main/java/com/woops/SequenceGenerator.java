@@ -1,7 +1,8 @@
 package com.woops;
 
-import com.woops.filters.*; 
+import com.woops.filters.*;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -149,7 +150,29 @@ public class SequenceGenerator {
     if (type == int.class || type == Integer.class) return random.nextInt(100) * (int) Math.signum(random.nextInt());
     if (type == boolean.class || type == Boolean.class) return random.nextBoolean();
     if (type == char.class || type == Character.class) return (char) (32 + random.nextInt(95));
-    if (type == String.class) return generateRandomString(random.nextInt(50)); 
+    if (type == String.class) return generateRandomString(random.nextInt(50));
+
+    // Allows for Array generation
+    if (type.isArray()) {
+      Class<?> componentType = type.getComponentType();
+      int length = random.nextInt(20);
+      Object array = Array.newInstance(componentType, length);
+      for (int i = 0; i < length; i++) {
+          Array.set(array, i, getRandomValue(componentType));
+      }
+      return array;
+    }
+
+    // Allows for List generation
+    if (type == List.class) {
+      List<Object> list = new ArrayList<>();
+      int size = random.nextInt(20);
+      for (int i = 0; i < size; i++) {
+          list.add(getRandomValue(Object.class));
+      }
+      return list;
+    } 
+
     return null; // for other object types
   }
 
