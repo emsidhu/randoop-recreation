@@ -16,7 +16,8 @@ public abstract class Statement {
   public Object getResult() {
     return result;
   }
-  //update for filter
+
+  // for filters (may be overridden by subclasses)
   public Object getReturnValue() {
     return null;
   }
@@ -26,4 +27,7 @@ public abstract class Statement {
   public Class<?> getType() {
     return type;
   }
+
+  // ✅ for equivalence filtering
+  public abstract String getSignature();
 }

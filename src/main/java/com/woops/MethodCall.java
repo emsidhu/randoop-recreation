@@ -2,11 +2,12 @@ package com.woops;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.List;
 
 /** 
   * Represents a method call within a sequence.
-  * * Includes its arguments and return value (result).
+  * Includes its arguments and return value (result).
   */
 public final class MethodCall extends Statement {
   private final Method method;
@@ -22,28 +23,38 @@ public final class MethodCall extends Statement {
 
   @Override
   public void execute() throws Exception {
-    // Get the receiver from the first argument if the method is static
+    // Get the receiver from the first argument if the method is not static
     Object receiver = isStatic ? null : args.get(0);
     List<Object> actualArgs = isStatic ? args : args.subList(1, args.size());
     result = method.invoke(receiver, actualArgs.toArray());
   }
-  
+
   @Override
   public String toCode() {
     StringBuilder code = new StringBuilder();
-    // If the Method is static, it's called on the class name
+    // If the method is static, it's called on the class name
     if (isStatic) {
       code.append(method.getDeclaringClass().getName());
-    } else { // Otherwise, it's called on an instance (always named obj for now)
+    } else {
       code.append("obj");
     }
     code.append(".").append(method.getName()).append("(");
-    // Don't include the first arg (the receiver) if the method isn't static
     for (int i = (isStatic ? 0 : 1); i < args.size(); i++) {
       code.append(args.get(i));
       if (i < args.size() - 1) code.append(", ");
     }
     code.append(")");
     return code.toString();
+  }
+
+  @Override
+  public Object getReturnValue() {
+    return result;
+  }
+
+  // Added for equivalence filtering
+  @Override
+  public String getSignature() {
+    return method.getName() + "(" + Arrays.toString(method.getParameterTypes()) + ")";
   }
 }
