@@ -40,10 +40,16 @@ public class SequenceGenerator {
 
       // Pick a random class and method
       Class<?> cls = classes.get(new Random().nextInt(classes.size()));
-      Method[] methods = cls.getDeclaredMethods();
-      if (methods.length == 0) continue;
+      Method[] allMethods = cls.getDeclaredMethods();
+      List<Method> methods = new ArrayList<>();
+      for (Method method : allMethods) {
+          if (Modifier.isPublic(method.getModifiers())) {
+              methods.add(method);
+          }
+      }
+      if (methods.size() == 0) continue;
 
-      Method method = methods[new Random().nextInt(methods.length)];
+      Method method = methods.get(new Random().nextInt(methods.size()));
 
       Sequence newSeq = new Sequence();
 
