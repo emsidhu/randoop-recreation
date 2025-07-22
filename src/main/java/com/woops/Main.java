@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.io.IOException;        // add this import
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class Main
     // The class name should be the fully qualified name, e.g., "com.woops.Class"
     String className = args[1];
     int timeLimit = 1000;
-    int maxSequences = 5;
+    int maxSequences = 50;
     
     if (!classDir.exists() || !classDir.isDirectory()) {
       System.err.println("Error: The provided path does not point to a valid directory.");
@@ -37,6 +38,7 @@ public class Main
     List<Class<?>> classes = new ArrayList<>();
     // Get the class object
     Class<?> cls = getClassFromFile(classDir, className);
+    for (URLClassLoader l : openLoaders) { l.close(); }
     if (cls == null) return;
     classes.add(cls);
 
@@ -44,7 +46,7 @@ public class Main
 
     // Generates the test suite
     String suiteClassName = "GeneratedTests";
-    String outDir  = "./target/generated-sources";
+    String outDir  = "./target/generated-sources/com/demo";
     try {
       
       Path   dirPath = Paths.get(outDir);
@@ -87,13 +89,28 @@ public class Main
     }
   }
 
+  private static final List<URLClassLoader> openLoaders = new ArrayList<>();
   // Returns a Class 
-  private static Class<?> getClassFromFile(File dir, String className) {
-    try (URLClassLoader classLoader = new URLClassLoader(new URL[] {dir.toURI().toURL()})) {
-      return classLoader.loadClass(className);
-    } catch (Exception e) {
-      System.err.println("Error loading class: " + e.getMessage());
-      return null;
+  private static Class<?> getClassFromFile(File dir, String className)  throws MalformedURLException, ClassNotFoundException {
+    URL url = dir.toPath().toAbsolutePath().toUri().toURL();
+    if (!url.toString().endsWith("/")) {          // ensure it’s treated as a dir
+        url = new URL(url.toString() + "/");
     }
+    URLClassLoader loader =
+        new URLClassLoader(new URL[] { url }, Main.class.getClassLoader());
+    openLoaders.add(loader);                      // remember to close later
+    return Class.forName(className, false, loader);
+
+
+    // try (URLClassLoader classLoader = new URLClassLoader(new URL[] {dir.toURI().toURL()})) {
+    //   return classLoader.loadClass(className);
+    // } catch (Exception e) {
+    //   System.err.println("Error loading class: " + e.getMessage());
+    //   return null;
+    // }
   }
+
+
+
+
 }
