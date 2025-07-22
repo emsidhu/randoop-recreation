@@ -58,7 +58,6 @@ public class Sequence {
 
     code.append("  @org.junit.jupiter.api.Test\n");
     code.append("  public void ").append(methodName).append("() throws Throwable {\n");
-    code.append("    com.demo.TestClass obj = new com.demo.TestClass();\n");
     // we should probably assert that invalid tests throw and error but i'm not sure how
     // if(valid ){
     for (int i = 0; i < statements.size(); i++) {
