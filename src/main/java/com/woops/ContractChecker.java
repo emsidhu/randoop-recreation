@@ -16,14 +16,15 @@ public final class ContractChecker {
 
   private ContractChecker() {}
 
-  public static void checkAll(Object... objs) {
+  public static String checkAll(Object... objs) {
     for (Contract c : DEFAULT_CONTRACTS) {
       if (c.isApplicable(objs)) {
         ContractOutcome out = c.check(objs);
         if (out.isViolation()) {
-          throw new ContractViolationException(out.getMessage());
+          return c.getClass().getSimpleName();
         }
       }
     }
+    return null;
   }
 }

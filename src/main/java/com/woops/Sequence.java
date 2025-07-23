@@ -10,6 +10,7 @@ public class Sequence {
   // for filters
   private Object lastResult = null;
   private boolean threwException = false;
+  private String violatedContract = null; // Track which contract was violated
 
   public Sequence() {
   }
@@ -49,8 +50,20 @@ public class Sequence {
     return threwException;
   }
 
+  public void setViolatedContract(String contract) {
+    this.violatedContract = contract;
+  }
+
+  public String getViolatedContract() {
+    return violatedContract;
+  }
+
   // properly formats each test case
   public String toCode(boolean isValid) {
+    return toCode(isValid, this.violatedContract);
+  }
+  
+  public String toCode(boolean isValid, String violatedContract) {
     StringBuilder code = new StringBuilder();
 
     // Unique method name
@@ -62,7 +75,7 @@ public class Sequence {
     if (isValid) {
       generateValidTest(code);
     } else {
-      generateInvalidTest(code);
+      generateInvalidTest(code, violatedContract);
     }
 
     code.append("  }\n");
@@ -84,7 +97,7 @@ public class Sequence {
     addContractAssertions(code);
   }
 
-  private void generateInvalidTest(StringBuilder code) {
+  private void generateInvalidTest(StringBuilder code, String violatedContract) {
     code.append("    Assertions.assertThrows(Throwable.class, () -> {\n");
     
     for (int i = 0; i < statements.size(); i++) {
@@ -97,6 +110,11 @@ public class Sequence {
     }
     
     code.append("    });\n");
+    
+    // Add comment about which contract was violated (if it was a contract violation)
+    if (violatedContract != null && !violatedContract.isEmpty()) {
+      code.append("    // Violated: ").append(violatedContract).append("\n");
+    }
   }
 
 

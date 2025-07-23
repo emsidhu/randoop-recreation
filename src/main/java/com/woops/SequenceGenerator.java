@@ -116,36 +116,48 @@ public class SequenceGenerator {
       }
 
       newSeq.statements.add(new MethodCall(method, args));
+      sequenceCount++;
 
       try {
         // execute sequence
         newSeq.execute();
-
-        // apply filters to do the judgement
-        boolean passedAll = true;
-        for (Filter f : filters) {
-          if (!f.isValid(newSeq)) {
-            System.out.println("Sequence filtered by " + f.getName());
-            passedAll = false;
-            break;
-          }
-        }
-
-        if (passedAll) {
-          System.out.println("Sequence accepted:");
-          System.out.println(newSeq.toCode(true));
-          validSeqs.add(newSeq);
-          pool.addSequence(newSeq);
-        } else {
-          errorSeqs.add(newSeq);
-        }
-
-        sequenceCount++;
-
       } catch (Exception e) {
         System.out.println("Exception during execution: " + e);
         errorSeqs.add(newSeq);
       }
+      
+      boolean passedAll = true;
+      // Apply filters
+      for (Filter f : filters) {
+        if (!f.isValid(newSeq)) {
+          System.out.println("Sequence filtered by " + f.getName());
+          passedAll = false;
+          break;
+        }
+      }
+
+      // Check for contract violations
+      String violatedContract = null;
+      for (Statement stmt : newSeq.statements) {
+        if (stmt.getResult() != null) {
+          String contractViolation = ContractChecker.checkAll(stmt.getResult());
+          if (contractViolation != null) {
+            System.out.println("Sequence violates contract: " + violatedContract);
+            newSeq.setViolatedContract(violatedContract);
+            passedAll = false;
+            break;
+          }
+        }
+      }
+
+      if (passedAll) {
+        System.out.println("Sequence accepted:");
+        System.out.println(newSeq.toCode(true));
+        validSeqs.add(newSeq);
+      } else {
+        errorSeqs.add(newSeq);
+      }
+
     }
 
     return new Pair<>(validSeqs, errorSeqs);

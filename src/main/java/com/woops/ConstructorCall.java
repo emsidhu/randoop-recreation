@@ -15,9 +15,6 @@ public class ConstructorCall extends Statement {
   @Override
   public void execute() throws Exception {
       result = constructor.newInstance(args.stream().map(Argument::getValue).toArray());
-
-      // Checks contracts on new object
-      ContractChecker.checkAll(result);
   }
 
   @Override
