@@ -60,6 +60,12 @@ src/
    ```bash
    mvn test
    ```
+#### Run on a specific class with selected methods:
+
+If you want to only generate tests for specific methods of a class, use:
+
+```bash
+mvn -e exec:java -Dexec.mainClass="com.woops.Main" -Dexec.args="./target/classes com.demo.BinTree find add remove"
 
 ## Customization
 
