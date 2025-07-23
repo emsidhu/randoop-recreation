@@ -65,14 +65,14 @@ public class Main
 
         System.out.println("Valid Sequences: ");
         for (Sequence seq : sequencePair.first) {
-          w.write(seq.toCode());
+          w.write(seq.toCode(true));
           w.newLine();
         }
 
         System.out.println();
         System.out.println("Invalid (Error-Causing / Contract Violating) Sequences: ");
         for (Sequence seq : sequencePair.second) {
-          w.write(seq.toCode());
+          w.write(seq.toCode(false));
           w.newLine();
         }
 

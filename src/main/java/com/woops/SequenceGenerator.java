@@ -121,7 +121,7 @@ public class SequenceGenerator {
 
         if (passedAll) {
           System.out.println("Sequence accepted:");
-          System.out.println(newSeq.toCode());
+          System.out.println(newSeq.toCode(true));
           validSeqs.add(newSeq);
           pool.addSequence(newSeq);
         } else {

@@ -50,35 +50,51 @@ public class Sequence {
   }
 
   // properly formats each test case
-  public String toCode() {
+  public String toCode(boolean isValid) {
     StringBuilder code = new StringBuilder();
 
     // Unique method name
-    String methodName = "generatedTest_" + Math.abs(hashCode());
+    String prefix = isValid ? "validGeneratedTest_" : "invalidGeneratedTest_";
+    String methodName = prefix + Math.abs(hashCode());
 
     code.append("  @org.junit.jupiter.api.Test\n");
     code.append("  public void ").append(methodName).append("() throws Throwable {\n");
-    // we should probably assert that invalid tests throw and error but i'm not sure how
-    // if(valid ){
+    if (isValid) {
+      generateValidTest(code);
+    } else {
+      generateInvalidTest(code);
+    }
+
+    code.append("  }\n");
+    return code.toString();
+  }
+
+  private void generateValidTest(StringBuilder code) {
     for (int i = 0; i < statements.size(); i++) {
       Statement stmt = statements.get(i);
       // Give the statement a corresponding variable name if needed
       if (stmt.getType() != void.class) {
         stmt.setVariableName("var" + i);
       }
-
       code.append("    ").append(stmt.toCode()).append(";\n");
     }
+    
+    // TODO: Add assertions for applicable contracts 
+  }
 
-    // } else {
-  // @org.junit.jupiter.api.Test
-  // public void generatedInvalidTest_1897789231() throws Throwable {
-  //   Assertions.assertThrows(Throwable.class, () -> {
-  //     com.demo.TestClass.crash();
-  // });
-    // }
-
-    code.append("  }\n");
-    return code.toString();
+  private void generateInvalidTest(StringBuilder code) {
+    code.append("    Assertions.assertThrows(Throwable.class, () -> {\n");
+    
+    for (int i = 0; i < statements.size(); i++) {
+      Statement stmt = statements.get(i);
+      // Give the statement a corresponding variable name if needed
+      if (stmt.getType() != void.class) {
+        stmt.setVariableName("var" + i);
+      }
+      code.append("      ").append(stmt.toCode()).append(";\n");
+    }
+    
+    code.append("    });\n");
   }
 }
+
