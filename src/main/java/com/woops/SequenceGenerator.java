@@ -38,10 +38,13 @@ public class SequenceGenerator {
 
     // Get testable methods from each class
     List<List<Method>> classMethodLists = new ArrayList<>();
+    List<List<Constructor<?>>> classConstructorLists = new ArrayList<>();
+
     for (Class<?> cls : classes) {
       Method[] allMethods = cls.getDeclaredMethods();
       List<Method> methods = new ArrayList<>();
       
+      // Get method list
       for (Method method : allMethods) {
         if (Modifier.isPublic(method.getModifiers()) && 
             shouldIncludeMethod(method, allowedMethods)) {
@@ -49,7 +52,19 @@ public class SequenceGenerator {
         }
       }
       classMethodLists.add(methods);
+
+      // Get constructor list
+      Constructor<?>[] constructors = cls.getDeclaredConstructors();
+      List<Constructor<?>> publicConstructors = new ArrayList<>();
+      
+      for (Constructor<?> constructor : constructors) {
+        if (Modifier.isPublic(constructor.getModifiers())) {
+          publicConstructors.add(constructor);
+        }
+      }
+      classConstructorLists.add(publicConstructors);
     }
+
 
     while (System.currentTimeMillis() - startTime < timeLimit &&
            sequenceCount < maxSequences) {
@@ -59,6 +74,7 @@ public class SequenceGenerator {
       int classIndex = new Random().nextInt(classes.size());
       Class<?> cls = classes.get(classIndex);
       List<Method> methods = classMethodLists.get(classIndex);
+      List<Constructor<?>> constructors = classConstructorLists.get(classIndex);
 
       if (methods.size() == 0) continue;
 
@@ -94,15 +110,50 @@ public class SequenceGenerator {
         // If no receiver exists, create one
         if (receiverStmt == null) { 
           try { 
-            // TODO: Make this work for constructors that need arguments as well
-            Constructor<?> constructor = cls.getDeclaredConstructor();
-            Statement constructorStmt = new ConstructorCall(constructor, new ArrayList<>());
+            
+            // Pick a random constructor
+            Constructor<?> constructor = constructors.get(random.nextInt(constructors.size()));
+            
+            // Generate arguments for the constructor
+            List<Argument> constructorArgs = new ArrayList<>();
+            
+            // Fill in constructor parameters
+            for (Class<?> paramType : constructor.getParameterTypes()) {
+              if (random.nextDouble() < 0.2) {
+                Object randomValue = getRandomValue(paramType);
+                Statement constantStmt = new ConstantAssignment(randomValue, paramType);
+                newSeq.statements.add(constantStmt);
+                constructorArgs.add(new Argument(constantStmt));
+                continue;
+              }
+
+              // Check if current sequence contains usable statement
+              Statement argStmt = pool.findStatementOfType(newSeq, paramType);
+              if (argStmt != null) {
+                constructorArgs.add(new Argument(argStmt));
+              } else {
+                // Otherwise, check pool
+                Sequence argSequence = pool.findSequenceOfType(paramType);
+                if (argSequence != null) {
+                  newSeq.concat(argSequence);
+                  argStmt = pool.findStatementOfType(argSequence, paramType);
+                  constructorArgs.add(new Argument(argStmt));
+                } else {
+                  Object randomValue = getRandomValue(paramType);
+                  Statement constantStmt = new ConstantAssignment(randomValue, paramType);
+                  newSeq.statements.add(constantStmt);
+                  constructorArgs.add(new Argument(constantStmt));
+                }
+              }
+            }
+            
+            Statement constructorStmt = new ConstructorCall(constructor, constructorArgs);
             newSeq.statements.add(constructorStmt);
             
             constructorStmt.execute();
             args.add(new Argument(constructorStmt));
           } catch (Exception e) {
-            System.err.println("CONTRACT FAIL " + e.getMessage());
+            System.err.println("Failed to create constructor for " + cls.getSimpleName() + ": " + e.getMessage());
             continue;
           }
         }
