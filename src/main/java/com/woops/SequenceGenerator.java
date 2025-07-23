@@ -111,7 +111,10 @@ public class SequenceGenerator {
       for (Class<?> type : method.getParameterTypes()) {
         // 20% chance to use a random value regardless of usable statements
         if (random.nextDouble() < 0.2) {
-          args.add(new Argument(getRandomValue(type)));
+          Object randomValue = getRandomValue(type);
+          Statement constantStmt = new ConstantAssignment(randomValue, type);
+          newSeq.statements.add(constantStmt);
+          args.add(new Argument(constantStmt));
           continue;
         }
 
@@ -127,7 +130,10 @@ public class SequenceGenerator {
             argStmt = pool.findStatementOfType(argSequence, type);
             args.add(new Argument(argStmt));
           } else {
-            args.add(new Argument(getRandomValue(type)));
+            Object randomValue = getRandomValue(type);
+            Statement constantStmt = new ConstantAssignment(randomValue, type);
+            newSeq.statements.add(constantStmt);
+            args.add(new Argument(constantStmt));
           }
         }
       }
