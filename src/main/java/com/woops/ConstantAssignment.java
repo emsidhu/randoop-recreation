@@ -14,13 +14,18 @@ public class ConstantAssignment extends Statement {
 
   @Override
   public String toCode() {
-    return (result == null) ? "null" : result.toString();
+    StringBuilder code = new StringBuilder();
+
+    // Save the result to a variable
+    code.append(this.getType())
+      .append(" ")
+      .append(getVariableName())
+      .append(" = ")
+      .append((result == null) ? "null" : result.toString());
+
+    return code.toString();
   }
 
-  @Override
-  public Object getReturnValue() {
-    return result;
-  }
 
   // For equivalence filtering
   @Override

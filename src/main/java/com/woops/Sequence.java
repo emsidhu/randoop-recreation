@@ -10,6 +10,7 @@ public class Sequence {
   // For filters
   private Object lastResult = null;
   private boolean threwException = false;
+  private String violatedContract = null; // Track which contract was violated
 
   public Sequence() {
   }
@@ -48,6 +49,20 @@ public class Sequence {
     return threwException;
   }
 
+
+  public void setViolatedContract(String contract) {
+    this.violatedContract = contract;
+  }
+
+  public String getViolatedContract() {
+    return violatedContract;
+  }
+
+  // properly formats each test case
+  public String toCode(boolean isValid) {
+    return toCode(isValid, this.violatedContract);
+  }
+
   // Fingerprint for EquivalenceFilter
   public String getSignatureFingerprint() {
     StringBuilder sb = new StringBuilder();
@@ -58,36 +73,81 @@ public class Sequence {
   }
 
   // Formats each test case
-  public String toCode() {
+  public String toCode(boolean isValid, String violatedContract) {
     StringBuilder code = new StringBuilder();
 
     // Unique method name
-    String methodName = "generatedTest_" + Math.abs(hashCode());
+    String prefix = isValid ? "validGeneratedTest_" : "invalidGeneratedTest_";
+    String methodName = prefix + Math.abs(hashCode());
 
     code.append("  @org.junit.jupiter.api.Test\n");
     code.append("  public void ").append(methodName).append("() throws Throwable {\n");
-    code.append("    com.demo.TestClass obj = new com.demo.TestClass();\n");
-    // we should probably assert that invalid tests throw and error but i'm not sure how
-    // if(valid ){
+    if (isValid) {
+      generateValidTest(code);
+    } else {
+      generateInvalidTest(code, violatedContract);
+    }
+
+    code.append("  }\n");
+    return code.toString();
+  }
+
+  private void generateValidTest(StringBuilder code) {
     for (int i = 0; i < statements.size(); i++) {
       Statement stmt = statements.get(i);
       // Give the statement a corresponding variable name if needed
       if (stmt.getType() != void.class) {
         stmt.setVariableName("var" + i);
       }
-
       code.append("    ").append(stmt.toCode()).append(";\n");
     }
-
-    // } else {
-  // @org.junit.jupiter.api.Test
-  // public void generatedInvalidTest_1897789231() throws Throwable {
-  //   Assertions.assertThrows(Throwable.class, () -> {
-  //     com.demo.TestClass.crash();
-  // });
-    // }
-
-    code.append("  }\n");
-    return code.toString();
   }
+
+  private void generateInvalidTest(StringBuilder code, String violatedContract) {
+    code.append("    Assertions.assertThrows(Throwable.class, () -> {\n");
+    
+    for (int i = 0; i < statements.size(); i++) {
+      Statement stmt = statements.get(i);
+      // Give the statement a corresponding variable name if needed
+      if (stmt.getType() != void.class) {
+        stmt.setVariableName("var" + i);
+      }
+      code.append("      ").append(stmt.toCode()).append(";\n");
+    }
+    
+    code.append("    });\n");
+    
+    // Add comment about which contract was violated (if it was a contract violation)
+    if (violatedContract != null && !violatedContract.isEmpty()) {
+      code.append("    // Violated: ").append(violatedContract).append("\n");
+    }
+  }
+
+
+  // private void addContractAssertions(StringBuilder code) {
+  //   for (Statement stmt : statements) {
+  //     if (stmt.getType() != void.class && stmt.getVariableName() != null) {
+  //       String varName = stmt.getVariableName();
+  //       Class<?> type = stmt.getType();
+
+  //       // Add assertions for default contracts
+  //       addDefaultAssertions(code, varName, type);
+  //     }
+  //   }
+  // }
+
+  // private void addDefaultAssertions(StringBuilder code, String varName, Class<?> type) {
+  //   if (type.isPrimitive()) {
+  //     return;
+  //   }
+
+  //   // Returned objects shouldn't be null
+  //   code.append("    Assertions.assertNotNull(").append(varName).append(");\n");
+  //   // o.equals(o) must return true (reflexivity)
+  //   code.append("    Assertions.assertEquals(").append(varName).append(", ").append(varName).append(");\n");
+  //   // hashCode() should not throw exception
+  //   code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".hashCode());\n");
+  //   // toString() should not throw exception
+  //   code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".toString());\n");
+  // }
 }

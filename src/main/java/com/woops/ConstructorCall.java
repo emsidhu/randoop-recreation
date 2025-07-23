@@ -17,9 +17,6 @@ public class ConstructorCall extends Statement {
   @Override
   public void execute() throws Exception {
       result = constructor.newInstance(args.stream().map(Argument::getValue).toArray());
-
-      // Checks contracts on new object
-      ContractChecker.checkAll(result);
   }
 
   // For equivalence filtering
@@ -43,11 +40,11 @@ public class ConstructorCall extends Statement {
     code.append(constructor.getName());
     code.append("(");
     for (int i = 0; i < args.size(); i++) {
-      Argument arg = args.get(0);
+      Argument arg = args.get(i);
       if (arg.hasStatement()) {
         code.append(arg.getStatement().getVariableName());
       } else {
-        code.append(addQuotes(args.get(i).getValue()));
+        code.append(addQuotes(arg.getValue()));
       }
       if (i < args.size() - 1) code.append(", ");
     }

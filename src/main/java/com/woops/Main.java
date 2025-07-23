@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.io.IOException;        // add this import
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -17,9 +18,10 @@ public class Main
     String dirArg = null;
     String classArg = null;
     int timeLimit = 1000;       // Default timeout in milliseconds
-    int maxSequences = 5;       // Default number of sequences to generate
+    int maxSequences = 50;       // Default number of sequences to generate
   
     // Parse command-line arguments
+    List<String> methodNames = new ArrayList<>();
     for (String arg : args) {
       if (arg.startsWith("--dir=")) {
         dirArg = arg.substring("--dir=".length());
@@ -29,12 +31,15 @@ public class Main
         timeLimit = Integer.parseInt(arg.substring("--time=".length()));
       } else if (arg.startsWith("--max=")) {
         maxSequences = Integer.parseInt(arg.substring("--max=".length()));
+      } else {
+        methodNames.add(arg);
       }
     }
   
     // Validate required arguments
     if (dirArg == null || classArg == null) {
-      System.err.println("Usage: mvn exec:java -Dexec.args=\"--dir=target/classes --class=com.demo.TestClass\"");
+      System.err.println("Usage: mvn exec:java -Dexec.args=\"--dir=<class-dir> --class=com.<package>.<class-name> [method1 method2 ...]\"");
+      System.err.println("If no methods specified, all public methods will be used");
       return;
     }
   
@@ -55,6 +60,7 @@ public class Main
       }
   
       Class<?> cls = getClassFromFile(classDir, className.trim());
+      for (URLClassLoader l : openLoaders) { l.close(); }
       if (cls != null) {
         classes.add(cls);
       } else {
@@ -74,7 +80,7 @@ public class Main
     // Generate JUnit test class
     String suiteClassName = "GeneratedTests";
     String outDir = "./target/generated-sources";
-  
+
     try {
       Path dirPath = Paths.get(outDir);
       Files.createDirectories(dirPath);
@@ -91,14 +97,14 @@ public class Main
   
         System.out.println("Valid Sequences:");
         for (Sequence seq : sequencePair.first) {
-          w.write(seq.toCode());
+          w.write(seq.toCode(true));
           w.newLine();
         }
   
         System.out.println();
         System.out.println("Invalid Sequences:");
         for (Sequence seq : sequencePair.second) {
-          w.write(seq.toCode());
+          w.write(seq.toCode(false));
           w.newLine();
         }
   
@@ -116,13 +122,20 @@ public class Main
   }
   
 
+  private static final List<URLClassLoader> openLoaders = new ArrayList<>();
   // Returns a Class 
-  private static Class<?> getClassFromFile(File dir, String className) {
-    try (URLClassLoader classLoader = new URLClassLoader(new URL[] {dir.toURI().toURL()})) {
-      return classLoader.loadClass(className);
-    } catch (Exception e) {
-      System.err.println("Error loading class: " + e.getMessage());
-      return null;
+  private static Class<?> getClassFromFile(File dir, String className)  throws MalformedURLException, ClassNotFoundException {
+    URL url = dir.toPath().toAbsolutePath().toUri().toURL();
+    if (!url.toString().endsWith("/")) {          // ensure it’s treated as a dir
+        url = new URL(url.toString() + "/");
     }
+    URLClassLoader loader =
+        new URLClassLoader(new URL[] { url }, Main.class.getClassLoader());
+    openLoaders.add(loader);                      // remember to close later
+    return Class.forName(className, false, loader);
   }
+
+
+
+
 }
