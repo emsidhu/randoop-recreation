@@ -23,12 +23,21 @@ public abstract class Statement {
   public Object getResult() {
     return result;
   }
+  
+  // for filters (may be overridden by subclasses)
+  public Object getReturnValue() {
+    return null;
+  }
+
 
   public abstract String toCode();
 
   public Class<?> getType() {
     return type;
   }
+
+  // ✅ for equivalence filtering
+  public abstract String getSignature();
 
   public void setVariableName(String name) {
     this.variableName = name;

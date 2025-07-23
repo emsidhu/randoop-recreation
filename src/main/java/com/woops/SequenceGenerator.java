@@ -6,12 +6,15 @@ import com.woops.filters.FilterLoader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
+/**
+ * Generates sequences for test case generation using random method selection,
+ * filtering, and structure-based equivalence checking.
+ */
 public class SequenceGenerator {
   private final static Random random = new Random();
+  
   /** 
     * Generates a list of sequences from the given classes.
     *
@@ -24,6 +27,7 @@ public class SequenceGenerator {
     List<Sequence> errorSeqs = new ArrayList<>();
     SequencePool pool = new SequencePool();
     List<Sequence> validSeqs = new ArrayList<>();
+    Set<String> seenFingerprints = new HashSet<>();
 
     long startTime = System.currentTimeMillis();
     int sequenceCount = 0;
@@ -34,19 +38,19 @@ public class SequenceGenerator {
     while (System.currentTimeMillis() - startTime < timeLimit &&
            sequenceCount < maxSequences) {
 
-      // Pick a random class and method
+      // Pick random class and method
       Class<?> cls = classes.get(new Random().nextInt(classes.size()));
       Method[] methods = cls.getDeclaredMethods();
       if (methods.length == 0) continue;
 
       Method method = methods[new Random().nextInt(methods.length)];
-
       Sequence newSeq = new Sequence();
 
       List<Argument> args = new ArrayList<>();
 
-      // Make a receiver the first argument for non-static methods
+      // Handle instance method: add receiver object
       if (!Modifier.isStatic(method.getModifiers())) {
+
         Sequence receiverSequence = pool.findSequenceOfType(cls);
         if (receiverSequence != null) {
           newSeq.concat(receiverSequence);
@@ -69,6 +73,7 @@ public class SequenceGenerator {
         }
       }
 
+      // Generate arguments
       for (Class<?> type : method.getParameterTypes()) {
         // 50% chance to use a random value regardless of usable statements
         if (random.nextBoolean()) {
@@ -96,10 +101,16 @@ public class SequenceGenerator {
       newSeq.statements.add(new MethodCall(method, args));
 
       try {
-        // execute sequence
         newSeq.execute();
 
-        // apply filters to do the judgement
+        // Check structural equivalence
+        String fingerprint = newSeq.getSignatureFingerprint();
+        if (seenFingerprints.contains(fingerprint)) {
+          System.out.println("Sequence skipped due to duplicate structure");
+          continue;
+        }
+
+        // Apply filters
         boolean passedAll = true;
         for (Filter f : filters) {
           if (!f.isValid(newSeq)) {
@@ -113,6 +124,7 @@ public class SequenceGenerator {
           System.out.println("Sequence accepted:");
           System.out.println(newSeq.toCode());
           validSeqs.add(newSeq);
+          seenFingerprints.add(fingerprint);
           pool.addSequence(newSeq);
         } else {
           errorSeqs.add(newSeq);

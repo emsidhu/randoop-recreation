@@ -7,7 +7,7 @@ import java.util.List;
 public class Sequence {
   public final List<Statement> statements = new ArrayList<>();
 
-  // for filters
+  // For filters
   private Object lastResult = null;
   private boolean threwException = false;
 
@@ -31,7 +31,6 @@ public class Sequence {
     try {
       for (Statement stmt : statements) {
         stmt.execute();
-        // Update lastResult： Statement.getResult
         lastResult = stmt.getResult();
       }
       threwException = false;
@@ -40,7 +39,7 @@ public class Sequence {
     }
   }
 
-  //  getter for filter
+  // Getter for filter
   public Object getLastResult() {
     return lastResult;
   }
@@ -49,7 +48,16 @@ public class Sequence {
     return threwException;
   }
 
-  // properly formats each test case
+  // Fingerprint for EquivalenceFilter
+  public String getSignatureFingerprint() {
+    StringBuilder sb = new StringBuilder();
+    for (Statement stmt : statements) {
+      sb.append(stmt.getSignature()).append(";");
+    }
+    return sb.toString();
+  }
+
+  // Formats each test case
   public String toCode() {
     StringBuilder code = new StringBuilder();
 
