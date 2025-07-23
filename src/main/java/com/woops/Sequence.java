@@ -130,7 +130,7 @@ public class Sequence {
     
     code.append("    });\n");
     
-    // Add assertion that verifies the specific contract violation on the violating object
+    // Add assertion that verifies contract violation (if applicable)
     if (violatedContract != null && !violatedContract.isEmpty()) {
       addContractViolationAssertion(code, violatedContract);
     }
