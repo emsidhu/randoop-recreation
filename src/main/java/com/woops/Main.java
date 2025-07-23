@@ -75,7 +75,7 @@ public class Main
   
     // Run sequence generation
     Pair<List<Sequence>, List<Sequence>> sequencePair =
-        SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
+        SequenceGenerator.generateSequences(classes, timeLimit, maxSequences, methodNames);
   
     // Generate JUnit test class
     String suiteClassName = "GeneratedTests";
