@@ -1,7 +1,6 @@
 package com.woops;
 
-import com.woops.filters.*; 
-import com.woops.filters.FilterLoader;
+import com.woops.filters.*;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -168,17 +167,15 @@ public class SequenceGenerator {
       }
 
       // Check for contract violations
-      String violatedContract = null;
-      for (Statement stmt : newSeq.statements) {
-        if (stmt.getResult() != null) {
-          String contractViolation = ContractChecker.checkAll(stmt.getResult());
-          if (contractViolation != null) {
-            System.out.println("Sequence violates contract: " + violatedContract);
-            newSeq.setViolatedContract(violatedContract);
-            passedAll = false;
-            break;
-          }
-        }
+      Pair<String, Statement> contractResult = ContractChecker.checkStatements(newSeq.statements);
+      String violatedContract = contractResult.first;
+      Statement violatingStmt = contractResult.second;
+      
+      if (violatedContract != null) {
+        System.out.println("Sequence violates contract: " + violatedContract);
+        newSeq.setViolatedContract(violatedContract);
+        newSeq.setViolatingStmt(violatingStmt);
+        passedAll = false;
       }
 
       if (passedAll) {

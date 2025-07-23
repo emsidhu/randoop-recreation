@@ -11,6 +11,7 @@ public class Sequence {
   private Object lastResult = null;
   private boolean threwException = false;
   private String violatedContract = null; // Track which contract was violated
+  private Statement violatingStmt = null; // Track which statement caused the violation
 
   public Sequence() {
   }
@@ -58,6 +59,14 @@ public class Sequence {
     return violatedContract;
   }
 
+  public void setViolatingStmt(Statement statement) {
+    this.violatingStmt = statement;
+  }
+
+  public Statement getViolatingStmt() {
+    return violatingStmt;
+  }
+
   // properly formats each test case
   public String toCode(boolean isValid) {
     return toCode(isValid, this.violatedContract);
@@ -101,6 +110,10 @@ public class Sequence {
       }
       code.append("    ").append(stmt.toCode()).append(";\n");
     }
+
+    // Comment this out if not needed
+    code.append("\n").append("    // Contract Checks \n");
+    addContractAssertions(code);
   }
 
   private void generateInvalidTest(StringBuilder code, String violatedContract) {
@@ -117,37 +130,60 @@ public class Sequence {
     
     code.append("    });\n");
     
-    // Add comment about which contract was violated (if it was a contract violation)
+    // Add assertion that verifies the specific contract violation on the violating object
     if (violatedContract != null && !violatedContract.isEmpty()) {
-      code.append("    // Violated: ").append(violatedContract).append("\n");
+      addContractViolationAssertion(code, violatedContract);
+    }
+  }
+
+  
+  private void addContractAssertions(StringBuilder code) {
+    for (Statement stmt : statements) {
+      if (stmt.getType() != void.class && stmt.getVariableName() != null) {
+        String varName = stmt.getVariableName();
+        Class<?> type = stmt.getType();
+
+        // Add assertions for default contracts
+        addDefaultAssertions(code, varName, type);
+      }
+    }
+  }
+
+  private void addDefaultAssertions(StringBuilder code, String varName, Class<?> type) {
+    if (type.isPrimitive()) {
+      return;
+    }
+
+    // o.equals(o) must return true (reflexivity)
+    code.append("    Assertions.assertEquals(").append(varName).append(", ").append(varName).append(");\n");
+    // hashCode() should not throw exception
+    code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".hashCode());\n");
+    // toString() should not throw exception
+    code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".toString());\n");
+  }
+
+
+  private void addContractViolationAssertion(StringBuilder code, String violatedContract) {
+    if (violatingStmt == null || violatingStmt.getVariableName() == null) return;
+    
+    String varName = violatingStmt.getVariableName();
+    switch (violatedContract) {
+      case "DefaultEqualsContract":
+        code.append("    Assertions.assertEquals(").append(varName).append(", ").append(varName).append(");\n");
+        break;
+        
+      case "DefaultHashCodeContract":
+        code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".hashCode());\n");
+        break;
+        
+      case "DefaultToStringContract":
+        code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".toString());\n");
+        break;
+        
+      default:
+        code.append("    // Contract ").append(violatedContract).append(" was violated by ").append(varName).append("\n");
     }
   }
 
 
-  // private void addContractAssertions(StringBuilder code) {
-  //   for (Statement stmt : statements) {
-  //     if (stmt.getType() != void.class && stmt.getVariableName() != null) {
-  //       String varName = stmt.getVariableName();
-  //       Class<?> type = stmt.getType();
-
-  //       // Add assertions for default contracts
-  //       addDefaultAssertions(code, varName, type);
-  //     }
-  //   }
-  // }
-
-  // private void addDefaultAssertions(StringBuilder code, String varName, Class<?> type) {
-  //   if (type.isPrimitive()) {
-  //     return;
-  //   }
-
-  //   // Returned objects shouldn't be null
-  //   code.append("    Assertions.assertNotNull(").append(varName).append(");\n");
-  //   // o.equals(o) must return true (reflexivity)
-  //   code.append("    Assertions.assertEquals(").append(varName).append(", ").append(varName).append(");\n");
-  //   // hashCode() should not throw exception
-  //   code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".hashCode());\n");
-  //   // toString() should not throw exception
-  //   code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".toString());\n");
-  // }
 }
