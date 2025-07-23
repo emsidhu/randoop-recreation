@@ -23,11 +23,6 @@ public abstract class Statement {
   public Object getResult() {
     return result;
   }
-  
-  // for filters (may be overridden by subclasses)
-  public Object getReturnValue() {
-    return null;
-  }
 
 
   public abstract String toCode();

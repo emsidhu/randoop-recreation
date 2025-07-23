@@ -72,11 +72,6 @@ public final class MethodCall extends Statement {
     return code.toString();
   }
 
-  @Override
-  public Object getReturnValue() {
-    return result;
-  }
-
   // Added for equivalence filtering
   @Override
   public String getSignature() {
