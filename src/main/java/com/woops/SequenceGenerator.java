@@ -64,6 +64,13 @@ public class SequenceGenerator {
       Method method = methods.get(new Random().nextInt(methods.size()));
 
       Sequence newSeq = new Sequence();
+      
+      // 80% chance to start from an existing valid sequence, 20% chance to start empty
+      if (!validSeqs.isEmpty() && random.nextDouble() < 0.8) {
+        // Use an existing valid sequence as starting point
+        Sequence baseSeq = validSeqs.get(random.nextInt(validSeqs.size()));
+        newSeq.concat(baseSeq);
+      }
 
       List<Argument> args = new ArrayList<>();
 
@@ -92,8 +99,8 @@ public class SequenceGenerator {
       }
 
       for (Class<?> type : method.getParameterTypes()) {
-        // 50% chance to use a random value regardless of usable statements
-        if (random.nextBoolean()) {
+        // 20% chance to use a random value regardless of usable statements
+        if (random.nextDouble() < 0.2) {
           args.add(new Argument(getRandomValue(type)));
           continue;
         }
@@ -114,7 +121,7 @@ public class SequenceGenerator {
           }
         }
       }
-
+      
       newSeq.statements.add(new MethodCall(method, args));
       sequenceCount++;
 
