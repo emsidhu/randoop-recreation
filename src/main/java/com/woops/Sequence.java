@@ -105,7 +105,7 @@ public class Sequence {
       if (stmt.getType() != void.class && stmt.getVariableName() != null) {
         String varName = stmt.getVariableName();
         Class<?> type = stmt.getType();
-        
+
         // Add assertions for default contracts
         addDefaultAssertions(code, varName, type);
       }
@@ -119,8 +119,8 @@ public class Sequence {
 
     // Returned objects shouldn't be null
     code.append("    Assertions.assertNotNull(").append(varName).append(");\n");
-    // o.equals(o) must return true
-    code.append("    Assertions.assertTrue(").append(varName).append(".equals(").append(varName).append("));\n");
+    // o.equals(o) must return true (reflexivity)
+    code.append("    Assertions.assertEquals(").append(varName).append(", ").append(varName).append(");\n");
     // hashCode() should not throw exception
     code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".hashCode());\n");
     // toString() should not throw exception
