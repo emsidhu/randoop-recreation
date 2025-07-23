@@ -81,7 +81,7 @@ public void generatedTest_123456789() throws Throwable {
 ## Authors
 
 - 
-- 
+- Zhengying Sun zsa65 zsa65@sfu.ca
 - 
 
 ## License
