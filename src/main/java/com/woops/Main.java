@@ -79,7 +79,7 @@ public class Main
   
     // Generate JUnit test class
     String suiteClassName = "GeneratedTests";
-    String outDir = "./target/generated-sources";
+    String outDir = "./target/generated-sources/com/demo";
 
     try {
       Path dirPath = Paths.get(outDir);
