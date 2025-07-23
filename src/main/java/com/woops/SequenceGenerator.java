@@ -36,11 +36,9 @@ public class SequenceGenerator {
         new EqualityFilter()
     );
 
-    while (System.currentTimeMillis() - startTime < timeLimit &&
-           sequenceCount < maxSequences) {
-
-      // Pick a random class and method
-      Class<?> cls = classes.get(new Random().nextInt(classes.size()));
+    // Get testable methods from each class
+    List<List<Method>> classMethodLists = new ArrayList<>();
+    for (Class<?> cls : classes) {
       Method[] allMethods = cls.getDeclaredMethods();
       List<Method> methods = new ArrayList<>();
       
@@ -50,6 +48,16 @@ public class SequenceGenerator {
           methods.add(method);
         }
       }
+      classMethodLists.add(methods);
+    }
+
+    while (System.currentTimeMillis() - startTime < timeLimit &&
+           sequenceCount < maxSequences) {
+
+      // Pick a random class and method
+      int classIndex = new Random().nextInt(classes.size());
+      Class<?> cls = classes.get(classIndex);
+      List<Method> methods = classMethodLists.get(classIndex);
 
       if (methods.size() == 0) continue;
 
