@@ -1,5 +1,7 @@
 package com.woops;
+
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.util.List;
 
 public class ConstructorCall extends Statement {
@@ -20,7 +22,13 @@ public class ConstructorCall extends Statement {
       ContractChecker.checkAll(result);
   }
 
+  // For equivalence filtering
   @Override
+  public String getSignature() {
+    return "new " + constructor.getDeclaringClass().getSimpleName() +
+           "(" + Arrays.toString(constructor.getParameterTypes()) + ")";
+  }
+  
   public String toCode() { 
     StringBuilder code = new StringBuilder();
 
@@ -46,5 +54,6 @@ public class ConstructorCall extends Statement {
 
     code.append(")");
     return code.toString();
+
   }
 }

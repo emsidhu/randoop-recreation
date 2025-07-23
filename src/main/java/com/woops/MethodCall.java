@@ -2,11 +2,12 @@ package com.woops;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.List;
 
 /** 
   * Represents a method call within a sequence.
-  * * Includes its arguments and return value (result).
+  * Includes its arguments and return value (result).
   */
 public final class MethodCall extends Statement {
   private final Method method;
@@ -69,5 +70,16 @@ public final class MethodCall extends Statement {
 
     code.append(")");
     return code.toString();
+  }
+
+  @Override
+  public Object getReturnValue() {
+    return result;
+  }
+
+  // Added for equivalence filtering
+  @Override
+  public String getSignature() {
+    return method.getName() + "(" + Arrays.toString(method.getParameterTypes()) + ")";
   }
 }
