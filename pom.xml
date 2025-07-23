@@ -16,14 +16,22 @@
   </properties>
 
   <dependencies>
-    <!-- JUnit 5 API + engine -->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>5.10.2</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <!-- JUnit 5 API + engine -->
+  <dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter</artifactId>
+    <version>5.10.2</version>
+    <scope>test</scope>
+  </dependency>
+
+  <!-- JSON library for loading filters from config -->
+  <dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20230227</version>
+  </dependency>
+</dependencies>
+
 
   <build>
     <plugins>

@@ -1,6 +1,7 @@
 package com.woops;
 
-import com.woops.filters.*;
+import com.woops.filters.*; 
+import com.woops.filters.FilterLoader;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -31,11 +32,8 @@ public class SequenceGenerator {
     long startTime = System.currentTimeMillis();
     int sequenceCount = 0;
 
-    List<Filter> filters = List.of(
-        new ExceptionFilter(),
-        new NullFilter(),
-        new EqualityFilter()
-    );
+    List<Filter> filters = FilterLoader.loadFiltersFromConfig("config.json");
+
 
     while (System.currentTimeMillis() - startTime < timeLimit &&
            sequenceCount < maxSequences) {
