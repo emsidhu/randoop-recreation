@@ -20,7 +20,9 @@ public class SequenceGenerator {
     * @param maxSequences Maximum number of sequences to generate.
     * @return A Pair containing a list of the valid, and error-causing, Sequences
   */
-  public static Pair<List<Sequence>, List<Sequence>> generateSequences(List<Class<?>> classes, long timeLimit, int maxSequences) {
+  public static Pair<List<Sequence>, List<Sequence>> generateSequences(
+      List<Class<?>> classes, long timeLimit, int maxSequences, List<String> allowedMethods) {
+
     List<Sequence> errorSeqs = new ArrayList<>();
     SequencePool pool = new SequencePool();
     List<Sequence> validSeqs = new ArrayList<>();
@@ -28,7 +30,6 @@ public class SequenceGenerator {
     long startTime = System.currentTimeMillis();
     int sequenceCount = 0;
 
-    // ✅ 初始化默认 filters
     List<Filter> filters = List.of(
         new ExceptionFilter(),
         new NullFilter(),
@@ -42,11 +43,14 @@ public class SequenceGenerator {
       Class<?> cls = classes.get(new Random().nextInt(classes.size()));
       Method[] allMethods = cls.getDeclaredMethods();
       List<Method> methods = new ArrayList<>();
+      
       for (Method method : allMethods) {
-          if (Modifier.isPublic(method.getModifiers())) {
-              methods.add(method);
-          }
+        if (Modifier.isPublic(method.getModifiers()) && 
+            shouldIncludeMethod(method, allowedMethods)) {
+          methods.add(method);
+        }
       }
+
       if (methods.size() == 0) continue;
 
       Method method = methods.get(new Random().nextInt(methods.size()));
@@ -180,6 +184,14 @@ public class SequenceGenerator {
     } 
 
     return null; // for other object types
+  }
+
+  // Helper method to check if method should be included
+  private static boolean shouldIncludeMethod(Method method, List<String> allowedMethods) {
+    // If no methods specified, allow all methods
+    if (allowedMethods.isEmpty()) return true;
+    // Check if method name is in the allowed list
+    return allowedMethods.contains(method.getName());
   }
 
 }

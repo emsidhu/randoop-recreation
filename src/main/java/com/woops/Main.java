@@ -20,14 +20,23 @@ public class Main
     // TODO: Allow people to pass in multiple class names
 
     if (args.length < 2) {
-      System.err.println("Error: Too few arguments, need class directory and name");
+      System.err.println("Usage: java Main <class-dir> <class-name> [method1 method2 ...]");
+      System.err.println("If no methods specified, all public methods will be used");
       return;
     }
+
     File classDir = new File(args[0]);
     // The class name should be the fully qualified name, e.g., "com.woops.Class"
     String className = args[1];
     int timeLimit = 1000;
     int maxSequences = 50;
+
+    List<String> methodNames = new ArrayList<>();
+    for (int i = 2; i < args.length; i++) {
+      if (!args[i].startsWith("--")) { // Skip any flags
+        methodNames.add(args[i]);
+      }
+    }
     
     if (!classDir.exists() || !classDir.isDirectory()) {
       System.err.println("Error: The provided path does not point to a valid directory.");
@@ -42,7 +51,8 @@ public class Main
     if (cls == null) return;
     classes.add(cls);
 
-    Pair<List<Sequence>,List<Sequence>> sequencePair = SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
+    Pair<List<Sequence>,List<Sequence>> sequencePair = 
+      SequenceGenerator.generateSequences(classes, timeLimit, maxSequences, methodNames);
 
     // Generates the test suite
     String suiteClassName = "GeneratedTests";
