@@ -80,6 +80,8 @@ public class Sequence {
     }
     
     // TODO: Add assertions for applicable contracts 
+    code.append("    // Contract Assertions\n");
+    addContractAssertions(code);
   }
 
   private void generateInvalidTest(StringBuilder code) {
@@ -96,5 +98,32 @@ public class Sequence {
     
     code.append("    });\n");
   }
-}
 
+
+  private void addContractAssertions(StringBuilder code) {
+    for (Statement stmt : statements) {
+      if (stmt.getType() != void.class && stmt.getVariableName() != null) {
+        String varName = stmt.getVariableName();
+        Class<?> type = stmt.getType();
+        
+        // Add assertions for default contracts
+        addDefaultAssertions(code, varName, type);
+      }
+    }
+  }
+
+  private void addDefaultAssertions(StringBuilder code, String varName, Class<?> type) {
+    if (type.isPrimitive()) {
+      return;
+    }
+
+    // Returned objects shouldn't be null
+    code.append("    Assertions.assertNotNull(").append(varName).append(");\n");
+    // o.equals(o) must return true
+    code.append("    Assertions.assertTrue(").append(varName).append(".equals(").append(varName).append("));\n");
+    // hashCode() should not throw exception
+    code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".hashCode());\n");
+    // toString() should not throw exception
+    code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".toString());\n");
+  }
+}
