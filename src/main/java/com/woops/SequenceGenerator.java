@@ -76,13 +76,23 @@ public class SequenceGenerator {
 
       // Make a receiver the first argument for non-static methods
       if (!Modifier.isStatic(method.getModifiers())) {
-        Sequence receiverSequence = pool.findSequenceOfType(cls);
-        if (receiverSequence != null) {
-          newSeq.concat(receiverSequence);
-          // Get the required value out of the sequence
-          Statement receiverStmt = pool.findStatementOfType(receiverSequence, cls);
+        // First check current sequence
+        Statement receiverStmt = pool.findStatementOfType(newSeq, cls);
+        if (receiverStmt == null) {
+          // Check other sequences
+          Sequence receiverSequence = pool.findSequenceOfType(cls);
+          if (receiverSequence != null) {
+            newSeq.concat(receiverSequence);
+            // Get the required value out of the sequence
+            receiverStmt = pool.findStatementOfType(receiverSequence, cls);
+            args.add(new Argument(receiverStmt));
+          }
+        } else {
           args.add(new Argument(receiverStmt));
-        } else { 
+        }
+
+        // If no receiver exists, create one
+        if (receiverStmt == null) { 
           try { 
             // TODO: Make this work for constructors that need arguments as well
             Constructor<?> constructor = cls.getDeclaredConstructor();
