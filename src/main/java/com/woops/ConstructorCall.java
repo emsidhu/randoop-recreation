@@ -6,9 +6,9 @@ import java.util.List;
 
 public class ConstructorCall extends Statement {
   private final Constructor<?> constructor;
-  private final List<Object> args; 
+  private final List<Argument> args; 
 
-  public ConstructorCall(Constructor<?> constructor, List<Object> args) {
+  public ConstructorCall(Constructor<?> constructor, List<Argument> args) {
     super(constructor.getDeclaringClass()); // initialize type
     this.constructor = constructor;
     this.args = args;
@@ -16,25 +16,10 @@ public class ConstructorCall extends Statement {
 
   @Override
   public void execute() throws Exception {
-    result = constructor.newInstance(args.toArray());
-  }
+      result = constructor.newInstance(args.stream().map(Argument::getValue).toArray());
 
-  @Override
-  public String toCode() {
-    StringBuilder code = new StringBuilder();
-    code.append(constructor.getDeclaringClass().getSimpleName()).append(" obj = new ");
-    code.append(constructor.getDeclaringClass().getSimpleName()).append("(");
-    for (int i = 0; i < args.size(); i++) {
-      code.append(args.get(i));
-      if (i < args.size() - 1) code.append(", ");
-    }
-    code.append(")");
-    return code.toString();
-  }
-
-  @Override
-  public Object getReturnValue() {
-    return result;
+      // Checks contracts on new object
+      ContractChecker.checkAll(result);
   }
 
   // For equivalence filtering
@@ -42,5 +27,33 @@ public class ConstructorCall extends Statement {
   public String getSignature() {
     return "new " + constructor.getDeclaringClass().getSimpleName() +
            "(" + Arrays.toString(constructor.getParameterTypes()) + ")";
+  }
+  
+  public String toCode() { 
+    StringBuilder code = new StringBuilder();
+
+    // Save the result to a variable
+    code.append(constructor.getName())
+      .append(" ")
+      .append(getVariableName())
+      .append(" = ");
+
+
+    code.append("new ");
+    code.append(constructor.getName());
+    code.append("(");
+    for (int i = 0; i < args.size(); i++) {
+      Argument arg = args.get(0);
+      if (arg.hasStatement()) {
+        code.append(arg.getStatement().getVariableName());
+      } else {
+        code.append(addQuotes(args.get(i).getValue()));
+      }
+      if (i < args.size() - 1) code.append(", ");
+    }
+
+    code.append(")");
+    return code.toString();
+
   }
 }

@@ -12,9 +12,19 @@ import java.util.*;
  * filtering, and structure-based equivalence checking.
  */
 public class SequenceGenerator {
-
+  private final static Random random = new Random();
+  
+  /** 
+    * Generates a list of sequences from the given classes.
+    *
+    * @param classes List of classes to generate sequences from.
+    * @param timeLimit Time limit in milliseconds.
+    * @param maxSequences Maximum number of sequences to generate.
+    * @return A Pair containing a list of the valid, and error-causing, Sequences
+  */
   public static Pair<List<Sequence>, List<Sequence>> generateSequences(List<Class<?>> classes, long timeLimit, int maxSequences) {
     List<Sequence> errorSeqs = new ArrayList<>();
+    SequencePool pool = new SequencePool();
     List<Sequence> validSeqs = new ArrayList<>();
     Set<String> seenFingerprints = new HashSet<>();
 
@@ -36,27 +46,62 @@ public class SequenceGenerator {
       if (methods.length == 0) continue;
 
       Method method = methods[new Random().nextInt(methods.length)];
-      List<Sequence> seqs = new ArrayList<>();
-      List<Object> args = new ArrayList<>();
+      Sequence newSeq = new Sequence();
+
+      List<Argument> args = new ArrayList<>();
 
       // Handle instance method: add receiver object
       if (!Modifier.isStatic(method.getModifiers())) {
-        try {
-          Constructor<?> constructor = cls.getDeclaredConstructor();
-          Object receiver = constructor.newInstance();
-          args.add(receiver);
-        } catch (Exception e) {
-          continue;
+
+        Sequence receiverSequence = pool.findSequenceOfType(cls);
+        if (receiverSequence != null) {
+          newSeq.concat(receiverSequence);
+          // Get the required value out of the sequence
+          Statement receiverStmt = pool.findStatementOfType(receiverSequence, cls);
+          args.add(new Argument(receiverStmt));
+        } else { 
+          try { 
+            // TODO: Make this work for constructors that need arguments as well
+            Constructor<?> constructor = cls.getDeclaredConstructor();
+            Statement constructorStmt = new ConstructorCall(constructor, new ArrayList<>());
+            newSeq.statements.add(constructorStmt);
+            
+            constructorStmt.execute();
+            args.add(new Argument(constructorStmt));
+          } catch (Exception e) {
+            System.err.println("CONTRACT FAIL " + e.getMessage());
+            continue;
+          }
         }
       }
 
       // Generate arguments
       for (Class<?> type : method.getParameterTypes()) {
-        args.add(getRandomValue(type));
+        // 50% chance to use a random value regardless of usable statements
+        if (random.nextBoolean()) {
+          args.add(new Argument(getRandomValue(type)));
+          continue;
+        }
+
+        // Check if current sequence contains usable statement
+        Statement argStmt = pool.findStatementOfType(newSeq, type);
+        if (argStmt != null) {
+          args.add(new Argument(argStmt));
+        } else {
+          // Otherwise, check pool
+          Sequence argSequence = pool.findSequenceOfType(type);
+          if (argSequence != null) {
+            newSeq.concat(argSequence);
+            argStmt = pool.findStatementOfType(argSequence, type);
+            args.add(new Argument(argStmt));
+          } else {
+            args.add(new Argument(getRandomValue(type)));
+          }
+        }
       }
 
-      // Create sequence and execute
-      Sequence newSeq = Sequence.extend(method, seqs, args);
+      newSeq.statements.add(new MethodCall(method, args));
+
       try {
         newSeq.execute();
 
@@ -82,6 +127,7 @@ public class SequenceGenerator {
           System.out.println(newSeq.toCode());
           validSeqs.add(newSeq);
           seenFingerprints.add(fingerprint);
+          pool.addSequence(newSeq);
         } else {
           errorSeqs.add(newSeq);
         }
@@ -97,13 +143,25 @@ public class SequenceGenerator {
     return new Pair<>(validSeqs, errorSeqs);
   }
 
-  // Random argument generation
-  private static Object getRandomValue(Class<?> type) {
-    Random rand = new Random();
-    if (type == int.class || type == Integer.class) return rand.nextInt(10);
-    if (type == boolean.class || type == Boolean.class) return rand.nextBoolean();
-    if (type == char.class || type == Character.class) return (char) ('a' + rand.nextInt(26));
-    if (type == String.class) return "str" + rand.nextInt(100);
-    return null;
+  // Returns a random string
+  private static String generateRandomString(int length) {
+    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = 0; i < length; i++) {
+      int index = random.nextInt(characters.length());
+      sb.append(characters.charAt(index));
+    }
+    return sb.toString();
   }
+
+  // Returns a random value for the given type.
+  private static Object getRandomValue(Class<?> type) {
+    if (type == int.class || type == Integer.class) return random.nextInt(100) * (int) Math.signum(random.nextInt());
+    if (type == boolean.class || type == Boolean.class) return random.nextBoolean();
+    if (type == char.class || type == Character.class) return (char) (32 + random.nextInt(95));
+    if (type == String.class) return generateRandomString(random.nextInt(50)); 
+    return null; // for other object types
+  }
+
 }

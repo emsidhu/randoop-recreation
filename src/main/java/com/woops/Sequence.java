@@ -14,7 +14,11 @@ public class Sequence {
   public Sequence() {
   }
 
-  public static Sequence extend(Method m, List<Sequence> seqs, List<Object> args) {
+  public void concat(Sequence seq) {
+    this.statements.addAll(seq.statements);
+  }
+
+  public static Sequence extend(Method m, List<Sequence> seqs, List<Argument> args) {
     Sequence newSeq = new Sequence();
     for (Sequence seq : seqs) {
       newSeq.statements.addAll(seq.statements);
@@ -27,8 +31,7 @@ public class Sequence {
     try {
       for (Statement stmt : statements) {
         stmt.execute();
-        // Update lastResult for use in filters
-        lastResult = stmt.getReturnValue();
+        lastResult = stmt.getResult();
       }
       threwException = false;
     } catch (Exception e) {
@@ -63,10 +66,26 @@ public class Sequence {
 
     code.append("  @org.junit.jupiter.api.Test\n");
     code.append("  public void ").append(methodName).append("() throws Throwable {\n");
+    code.append("    com.demo.TestClass obj = new com.demo.TestClass();\n");
+    // we should probably assert that invalid tests throw and error but i'm not sure how
+    // if(valid ){
+    for (int i = 0; i < statements.size(); i++) {
+      Statement stmt = statements.get(i);
+      // Give the statement a corresponding variable name if needed
+      if (stmt.getType() != void.class) {
+        stmt.setVariableName("var" + i);
+      }
 
-    for (Statement stmt : statements) {
       code.append("    ").append(stmt.toCode()).append(";\n");
     }
+
+    // } else {
+  // @org.junit.jupiter.api.Test
+  // public void generatedInvalidTest_1897789231() throws Throwable {
+  //   Assertions.assertThrows(Throwable.class, () -> {
+  //     com.demo.TestClass.crash();
+  // });
+    // }
 
     code.append("  }\n");
     return code.toString();

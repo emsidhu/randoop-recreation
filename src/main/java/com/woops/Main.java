@@ -47,7 +47,7 @@ public class Main
     // Load all specified class names (comma-separated)
     String[] classNames = classArg.split(",");
     List<Class<?>> classes = new ArrayList<>();
-  
+
     for (String className : classNames) {
       if (!className.matches("([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z][a-zA-Z\\d_$]*")) {
         System.err.println("Error: Invalid class name format: " + className);
@@ -82,6 +82,7 @@ public class Main
   
       try (BufferedWriter w = Files.newBufferedWriter(filePath)) {
         w.write("""
+                package com.demo;
                 import org.junit.jupiter.api.Assertions;
                 import org.junit.jupiter.api.Test;
   
@@ -97,22 +98,7 @@ public class Main
         System.out.println();
         System.out.println("Invalid Sequences:");
         for (Sequence seq : sequencePair.second) {
-          String testName = "generatedInvalidTest_" + Math.abs(seq.hashCode());
-          w.write("""
-                    @Test
-                    public void %s() {
-                      Assertions.assertThrows(Throwable.class, () -> {
-              """.formatted(testName));
-  
-          for (String line : seq.toCode().split("\\R")) {
-            w.write("        " + line);
-            w.newLine();
-          }
-  
-          w.write("""
-                      });
-                    }
-                  """);
+          w.write(seq.toCode());
           w.newLine();
         }
   
