@@ -14,90 +14,113 @@ import java.util.List;
 
 public class Main 
 {
-  public static void main(String[] args) throws Exception  {
-    // TODO: Add checks to ensure arguments are correctly passed
-    // TODO: Allow arguments to be passed in using flags
-    // TODO: Allow people to pass in multiple class names
-
-    if (args.length < 2) {
-      System.err.println("Usage: java Main <class-dir> <class-name> [method1 method2 ...]");
+  public static void main(String[] args) throws Exception {
+    String dirArg = null;
+    String classArg = null;
+    int timeLimit = 1000;       // Default timeout in milliseconds
+    int maxSequences = 50;       // Default number of sequences to generate
+  
+    // Parse command-line arguments
+    List<String> methodNames = new ArrayList<>();
+    for (String arg : args) {
+      if (arg.startsWith("--dir=")) {
+        dirArg = arg.substring("--dir=".length());
+      } else if (arg.startsWith("--class=")) {
+        classArg = arg.substring("--class=".length());
+      } else if (arg.startsWith("--time=")) {
+        timeLimit = Integer.parseInt(arg.substring("--time=".length()));
+      } else if (arg.startsWith("--max=")) {
+        maxSequences = Integer.parseInt(arg.substring("--max=".length()));
+      } else {
+        methodNames.add(arg);
+      }
+    }
+  
+    // Validate required arguments
+    if (dirArg == null || classArg == null) {
+      System.err.println("Usage: mvn exec:java -Dexec.args=\"--dir=<class-dir> --class=com.<package>.<class-name> [method1 method2 ...]\"");
       System.err.println("If no methods specified, all public methods will be used");
       return;
     }
-
-    File classDir = new File(args[0]);
-    // The class name should be the fully qualified name, e.g., "com.woops.Class"
-    String className = args[1];
-    int timeLimit = 1000;
-    int maxSequences = 50;
-
-    List<String> methodNames = new ArrayList<>();
-    for (int i = 2; i < args.length; i++) {
-      if (!args[i].startsWith("--")) { // Skip any flags
-        methodNames.add(args[i]);
-      }
-    }
-    
+  
+    File classDir = new File(dirArg);
     if (!classDir.exists() || !classDir.isDirectory()) {
-      System.err.println("Error: The provided path does not point to a valid directory.");
+      System.err.println("Error: The provided directory is invalid.");
       return;
     }
-
-
+  
+    // Load all specified class names (comma-separated)
+    String[] classNames = classArg.split(",");
     List<Class<?>> classes = new ArrayList<>();
-    // Get the class object
-    Class<?> cls = getClassFromFile(classDir, className);
-    for (URLClassLoader l : openLoaders) { l.close(); }
-    if (cls == null) return;
-    classes.add(cls);
 
-    Pair<List<Sequence>,List<Sequence>> sequencePair = 
-      SequenceGenerator.generateSequences(classes, timeLimit, maxSequences, methodNames);
-
-    // Generates the test suite
+    for (String className : classNames) {
+      if (!className.matches("([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z][a-zA-Z\\d_$]*")) {
+        System.err.println("Error: Invalid class name format: " + className);
+        return;
+      }
+  
+      Class<?> cls = getClassFromFile(classDir, className.trim());
+      for (URLClassLoader l : openLoaders) { l.close(); }
+      if (cls != null) {
+        classes.add(cls);
+      } else {
+        System.err.println("Warning: Failed to load class " + className);
+      }
+    }
+  
+    if (classes.isEmpty()) {
+      System.err.println("Error: No valid class loaded.");
+      return;
+    }
+  
+    // Run sequence generation
+    Pair<List<Sequence>, List<Sequence>> sequencePair =
+        SequenceGenerator.generateSequences(classes, timeLimit, maxSequences);
+  
+    // Generate JUnit test class
     String suiteClassName = "GeneratedTests";
-    String outDir  = "./target/generated-sources/com/demo";
+    String outDir = "./target/generated-sources";
+
     try {
-      
-      Path   dirPath = Paths.get(outDir);
+      Path dirPath = Paths.get(outDir);
       Files.createDirectories(dirPath);
-      Path   filePath = dirPath.resolve(suiteClassName + ".java");
-
+      Path filePath = dirPath.resolve(suiteClassName + ".java");
+  
       try (BufferedWriter w = Files.newBufferedWriter(filePath)) {
-
         w.write("""
                 package com.demo;
                 import org.junit.jupiter.api.Assertions;
                 import org.junit.jupiter.api.Test;
-
+  
                 public class %s {
                 """.formatted(suiteClassName));
-
-        System.out.println("Valid Sequences: ");
+  
+        System.out.println("Valid Sequences:");
         for (Sequence seq : sequencePair.first) {
           w.write(seq.toCode(true));
           w.newLine();
         }
-
+  
         System.out.println();
-        System.out.println("Invalid (Error-Causing / Contract Violating) Sequences: ");
+        System.out.println("Invalid Sequences:");
         for (Sequence seq : sequencePair.second) {
           w.write(seq.toCode(false));
           w.newLine();
         }
-
-        // close class
+  
+        // Close the test class
         w.write("}");
       }
-
+  
       System.out.printf("Wrote %d valid and %d invalid sequences to %s%n",
           sequencePair.first.size(), sequencePair.second.size(), filePath);
-
+  
     } catch (IOException ioe) {
-      System.err.println("Failed to write generated tests: " + ioe.getMessage());
+      System.err.println("Failed to write test class: " + ioe.getMessage());
       ioe.printStackTrace();
     }
   }
+  
 
   private static final List<URLClassLoader> openLoaders = new ArrayList<>();
   // Returns a Class 
@@ -110,14 +133,6 @@ public class Main
         new URLClassLoader(new URL[] { url }, Main.class.getClassLoader());
     openLoaders.add(loader);                      // remember to close later
     return Class.forName(className, false, loader);
-
-
-    // try (URLClassLoader classLoader = new URLClassLoader(new URL[] {dir.toURI().toURL()})) {
-    //   return classLoader.loadClass(className);
-    // } catch (Exception e) {
-    //   System.err.println("Error loading class: " + e.getMessage());
-    //   return null;
-    // }
   }
 
 

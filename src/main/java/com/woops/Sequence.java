@@ -7,7 +7,7 @@ import java.util.List;
 public class Sequence {
   public final List<Statement> statements = new ArrayList<>();
 
-  // for filters
+  // For filters
   private Object lastResult = null;
   private boolean threwException = false;
   private String violatedContract = null; // Track which contract was violated
@@ -32,7 +32,6 @@ public class Sequence {
     try {
       for (Statement stmt : statements) {
         stmt.execute();
-        // Update lastResult： Statement.getResult
         lastResult = stmt.getResult();
       }
       threwException = false;
@@ -41,7 +40,7 @@ public class Sequence {
     }
   }
 
-  //  getter for filter
+  // Getter for filter
   public Object getLastResult() {
     return lastResult;
   }
@@ -49,6 +48,7 @@ public class Sequence {
   public boolean throwsException() {
     return threwException;
   }
+
 
   public void setViolatedContract(String contract) {
     this.violatedContract = contract;
@@ -62,7 +62,17 @@ public class Sequence {
   public String toCode(boolean isValid) {
     return toCode(isValid, this.violatedContract);
   }
-  
+
+  // Fingerprint for EquivalenceFilter
+  public String getSignatureFingerprint() {
+    StringBuilder sb = new StringBuilder();
+    for (Statement stmt : statements) {
+      sb.append(stmt.getSignature()).append(";");
+    }
+    return sb.toString();
+  }
+
+  // Formats each test case
   public String toCode(boolean isValid, String violatedContract) {
     StringBuilder code = new StringBuilder();
 

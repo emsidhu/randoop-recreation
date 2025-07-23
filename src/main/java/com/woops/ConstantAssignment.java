@@ -9,7 +9,7 @@ public class ConstantAssignment extends Statement {
 
   @Override
   public void execute() {
-      // no-op: already assigned at construction
+    // no-op: already assigned at construction
   }
 
   @Override
@@ -24,5 +24,12 @@ public class ConstantAssignment extends Statement {
       .append((result == null) ? "null" : result.toString());
 
     return code.toString();
+  }
+
+
+  // For equivalence filtering
+  @Override
+  public String getSignature() {
+    return "const(" + (result == null ? "null" : result.getClass().getSimpleName()) + ")";
   }
 }

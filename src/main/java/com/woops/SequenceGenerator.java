@@ -1,17 +1,21 @@
 package com.woops;
 
-import com.woops.filters.*;
+import com.woops.filters.*; 
+import com.woops.filters.FilterLoader;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
+/**
+ * Generates sequences for test case generation using random method selection,
+ * filtering, and structure-based equivalence checking.
+ */
 public class SequenceGenerator {
   private final static Random random = new Random();
+  
   /** 
     * Generates a list of sequences from the given classes.
     *
@@ -26,15 +30,12 @@ public class SequenceGenerator {
     List<Sequence> errorSeqs = new ArrayList<>();
     SequencePool pool = new SequencePool();
     List<Sequence> validSeqs = new ArrayList<>();
+    Set<String> seenFingerprints = new HashSet<>();
 
     long startTime = System.currentTimeMillis();
     int sequenceCount = 0;
 
-    List<Filter> filters = List.of(
-        new ExceptionFilter(),
-        new NullFilter(),
-        new EqualityFilter()
-    );
+    List<Filter> filters = FilterLoader.loadFiltersFromConfig("config.json");
 
     // Get testable methods from each class
     List<List<Method>> classMethodLists = new ArrayList<>();
@@ -54,6 +55,7 @@ public class SequenceGenerator {
     while (System.currentTimeMillis() - startTime < timeLimit &&
            sequenceCount < maxSequences) {
 
+
       // Pick a random class and method
       int classIndex = new Random().nextInt(classes.size());
       Class<?> cls = classes.get(classIndex);
@@ -62,9 +64,8 @@ public class SequenceGenerator {
       if (methods.size() == 0) continue;
 
       Method method = methods.get(new Random().nextInt(methods.size()));
-
-      Sequence newSeq = new Sequence();
       
+      Sequence newSeq = new Sequence();
       // 80% chance to start from an existing valid sequence, 20% chance to start empty
       if (!validSeqs.isEmpty() && random.nextDouble() < 0.8) {
         // Use an existing valid sequence as starting point
@@ -74,7 +75,7 @@ public class SequenceGenerator {
 
       List<Argument> args = new ArrayList<>();
 
-      // Make a receiver the first argument for non-static methods
+      // Handle instance method: add receiver object
       if (!Modifier.isStatic(method.getModifiers())) {
         // First check current sequence
         Statement receiverStmt = pool.findStatementOfType(newSeq, cls);
@@ -108,6 +109,7 @@ public class SequenceGenerator {
         }
       }
 
+      // Generate arguments
       for (Class<?> type : method.getParameterTypes()) {
         // 20% chance to use a random value regardless of usable statements
         if (random.nextDouble() < 0.2) {
@@ -142,11 +144,18 @@ public class SequenceGenerator {
       sequenceCount++;
 
       try {
-        // execute sequence
         newSeq.execute();
       } catch (Exception e) {
         System.out.println("Exception during execution: " + e);
         errorSeqs.add(newSeq);
+      }
+      
+      // Check structural equivalence
+      String fingerprint = newSeq.getSignatureFingerprint();
+      if (seenFingerprints.contains(fingerprint)) {
+        System.out.println("Sequence skipped due to duplicate structure");
+        errorSeqs.add(newSeq);
+        continue;
       }
       
       boolean passedAll = true;
@@ -154,7 +163,6 @@ public class SequenceGenerator {
       for (Filter f : filters) {
         if (!f.isValid(newSeq)) {
           System.out.println("Sequence filtered by " + f.getName());
-          passedAll = false;
           break;
         }
       }
@@ -178,6 +186,8 @@ public class SequenceGenerator {
         System.out.println(newSeq.toCode(true));
         validSeqs.add(newSeq);
       } else {
+        seenFingerprints.add(fingerprint);
+        pool.addSequence(newSeq);
         errorSeqs.add(newSeq);
       }
 
