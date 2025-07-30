@@ -109,51 +109,11 @@ public class SequenceGenerator {
 
         // If no receiver exists, create one
         if (receiverStmt == null) { 
-          try { 
-            
-            // Pick a random constructor
-            Constructor<?> constructor = constructors.get(random.nextInt(constructors.size()));
-            
-            // Generate arguments for the constructor
-            List<Argument> constructorArgs = new ArrayList<>();
-            
-            // Fill in constructor parameters
-            for (Class<?> paramType : constructor.getParameterTypes()) {
-              if (random.nextDouble() < 0.2) {
-                Object randomValue = getRandomValue(paramType);
-                Statement constantStmt = new ConstantAssignment(randomValue, paramType);
-                newSeq.statements.add(constantStmt);
-                constructorArgs.add(new Argument(constantStmt));
-                continue;
-              }
-
-              // Check if current sequence contains usable statement
-              Statement argStmt = pool.findStatementOfType(newSeq, paramType);
-              if (argStmt != null) {
-                constructorArgs.add(new Argument(argStmt));
-              } else {
-                // Otherwise, check pool
-                Sequence argSequence = pool.findSequenceOfType(paramType);
-                if (argSequence != null) {
-                  newSeq.concat(argSequence);
-                  argStmt = pool.findStatementOfType(argSequence, paramType);
-                  constructorArgs.add(new Argument(argStmt));
-                } else {
-                  Object randomValue = getRandomValue(paramType);
-                  Statement constantStmt = new ConstantAssignment(randomValue, paramType);
-                  newSeq.statements.add(constantStmt);
-                  constructorArgs.add(new Argument(constantStmt));
-                }
-              }
-            }
-            
-            Statement constructorStmt = new ConstructorCall(constructor, constructorArgs);
-            newSeq.statements.add(constructorStmt);
-            
-            constructorStmt.execute();
-            args.add(new Argument(constructorStmt));
-          } catch (Exception e) {
-            System.err.println("Failed to create constructor for " + cls.getSimpleName() + ": " + e.getMessage());
+          receiverStmt = createConstructorStatement(cls, newSeq, pool, constructors);
+          if (receiverStmt != null) {
+            args.add(new Argument(receiverStmt));
+          } else {
+            System.err.println("Failed to create constructor for " + cls.getSimpleName());
             continue;
           }
         }
@@ -163,10 +123,8 @@ public class SequenceGenerator {
       for (Class<?> type : method.getParameterTypes()) {
         // 20% chance to use a random value regardless of usable statements
         if (random.nextDouble() < 0.2) {
-          Object randomValue = getRandomValue(type);
-          Statement constantStmt = new ConstantAssignment(randomValue, type);
-          newSeq.statements.add(constantStmt);
-          args.add(new Argument(constantStmt));
+          Statement paramStmt = createParameter(type, newSeq, pool);
+          args.add(new Argument(paramStmt));
           continue;
         }
 
@@ -182,10 +140,8 @@ public class SequenceGenerator {
             argStmt = pool.findStatementOfType(argSequence, type);
             args.add(new Argument(argStmt));
           } else {
-            Object randomValue = getRandomValue(type);
-            Statement constantStmt = new ConstantAssignment(randomValue, type);
-            newSeq.statements.add(constantStmt);
-            args.add(new Argument(constantStmt));
+            Statement paramStmt = createParameter(type, newSeq, pool);
+            args.add(new Argument(paramStmt));
           }
         }
       }
@@ -293,6 +249,87 @@ public class SequenceGenerator {
     if (allowedMethods.isEmpty()) return true;
     // Check if method name is in the allowed list
     return allowedMethods.contains(method.getName());
+  }
+
+  // Helper method to create a parameter statement for a given type
+  private static Statement createParameter(Class<?> type, Sequence newSeq, SequencePool pool) {
+    // If needed, create a constructor call
+    if (!type.isPrimitive() && type != String.class && !type.isArray() && type != List.class) {
+      // Get constructors for this type
+      List<Constructor<?>> typeConstructors = new ArrayList<>();
+      for (Constructor<?> constructor : type.getDeclaredConstructors()) {
+        if (Modifier.isPublic(constructor.getModifiers())) {
+          typeConstructors.add(constructor);
+        }
+      }
+      
+      if (!typeConstructors.isEmpty()) {
+        Statement constructorStmt = createConstructorStatement(type, newSeq, pool, typeConstructors);
+        if (constructorStmt != null) {
+          return constructorStmt;
+        }
+      }
+    }
+    
+    // Otherwise create random primitive
+    Object randomValue = getRandomValue(type);
+    Statement constantStmt = new ConstantAssignment(randomValue, type);
+    newSeq.statements.add(constantStmt);
+    return constantStmt;
+  }
+
+  // Helper method to create a constructor statement for a given class
+  private static Statement createConstructorStatement(Class<?> cls, Sequence newSeq, SequencePool pool, List<Constructor<?>> constructors) {
+    try {
+      if (constructors.isEmpty()) {
+        return null;
+      }
+      
+      // Pick a random constructor
+      Constructor<?> constructor = constructors.get(random.nextInt(constructors.size()));
+      
+      // Generate arguments for the constructor
+      List<Argument> constructorArgs = new ArrayList<>();
+      
+      for (Class<?> paramType : constructor.getParameterTypes()) {
+        // 20% chance to use a random value
+        if (random.nextDouble() < 0.2) {
+          Object randomValue = getRandomValue(paramType);
+          Statement constantStmt = new ConstantAssignment(randomValue, paramType);
+          newSeq.statements.add(constantStmt);
+          constructorArgs.add(new Argument(constantStmt));
+          continue;
+        }
+
+        // Check if current sequence contains usable statement
+        Statement argStmt = pool.findStatementOfType(newSeq, paramType);
+        if (argStmt != null) {
+          constructorArgs.add(new Argument(argStmt));
+        } else {
+          // Otherwise, check pool
+          Sequence argSequence = pool.findSequenceOfType(paramType);
+          if (argSequence != null) {
+            newSeq.concat(argSequence);
+            argStmt = pool.findStatementOfType(argSequence, paramType);
+            constructorArgs.add(new Argument(argStmt));
+          } else {
+            Object randomValue = getRandomValue(paramType);
+            Statement constantStmt = new ConstantAssignment(randomValue, paramType);
+            newSeq.statements.add(constantStmt);
+            constructorArgs.add(new Argument(constantStmt));
+          }
+        }
+      }
+      
+      Statement constructorStmt = new ConstructorCall(constructor, constructorArgs);
+      newSeq.statements.add(constructorStmt);
+      constructorStmt.execute();
+      
+      return constructorStmt;
+    } catch (Exception e) {
+      System.err.println("Failed to create constructor for " + cls.getSimpleName() + ": " + e.getMessage());
+      return null;
+    }
   }
 
 }
