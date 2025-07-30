@@ -39,6 +39,7 @@ public class SequenceGenerator {
     // Get testable methods from each class
     List<List<Method>> classMethodLists = new ArrayList<>();
     List<List<Constructor<?>>> classConstructorLists = new ArrayList<>();
+    Map<Method, Integer> methodUsageCount = new HashMap<>();
 
     for (Class<?> cls : classes) {
       Method[] allMethods = cls.getDeclaredMethods();
@@ -49,6 +50,7 @@ public class SequenceGenerator {
         if (Modifier.isPublic(method.getModifiers()) && 
             shouldIncludeMethod(method, allowedMethods)) {
           methods.add(method);
+          methodUsageCount.put(method, 0); // Initialize usage count
         }
       }
       classMethodLists.add(methods);
@@ -77,12 +79,14 @@ public class SequenceGenerator {
       List<Constructor<?>> constructors = classConstructorLists.get(classIndex);
 
       if (methods.size() == 0) continue;
+      Method method = getRandomMethod(methods, methodUsageCount);      
+      // Increment usage count for the chosen method
+      methodUsageCount.put(method, methodUsageCount.get(method) + 1);
 
-      Method method = methods.get(new Random().nextInt(methods.size()));
       
       Sequence newSeq = new Sequence();
-      // 80% chance to start from an existing valid sequence, 20% chance to start empty
-      if (!validSeqs.isEmpty() && random.nextDouble() < 0.8) {
+      // 75% chance to start from an existing valid sequence, 25% chance to start empty
+      if (!validSeqs.isEmpty() && random.nextDouble() < 0.75) {
         // Use an existing valid sequence as starting point
         Sequence baseSeq = validSeqs.get(random.nextInt(validSeqs.size()));
         newSeq.concat(baseSeq);
@@ -249,6 +253,42 @@ public class SequenceGenerator {
     if (allowedMethods.isEmpty()) return true;
     // Check if method name is in the allowed list
     return allowedMethods.contains(method.getName());
+  }
+
+  // Helper method to select a method using weighted random selection
+  // Less used methods have higher probability of being selected
+  private static Method getRandomMethod(List<Method> methods, Map<Method, Integer> methodUsageCount) {
+    // Find the maximum usage count
+    int maxUsage = 0;
+    for (Method method : methods) {
+      int usage = methodUsageCount.get(method);
+      if (usage > maxUsage) {
+        maxUsage = usage;
+      }
+    }
+
+    // Methods with lower usage get higher weights
+    List<Double> weights = new ArrayList<>();
+    double totalWeight = 0.0;
+    for (Method method : methods) {
+      int usage = methodUsageCount.get(method);
+      double weight = maxUsage - usage + 1.0;
+      weights.add(weight);
+      totalWeight += weight;
+    }
+    
+    // Select randomly based on weights
+    double randomValue = random.nextDouble() * totalWeight;
+    double cumulativeWeight = 0.0;
+    
+    for (int i = 0; i < methods.size(); i++) {
+      cumulativeWeight += weights.get(i);
+      if (randomValue <= cumulativeWeight) {
+        return methods.get(i);
+      }
+    }
+    
+    return methods.get(methods.size() - 1);
   }
 
   // Helper method to create a parameter statement for a given type
