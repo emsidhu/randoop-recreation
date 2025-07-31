@@ -124,6 +124,14 @@ public class SequenceGenerator {
 
       // Generate arguments
       for (Class<?> type : method.getParameterTypes()) {
+        // 5% chance to use null for object types
+        if (!type.isPrimitive() && random.nextDouble() < 0.05) {
+          Statement nullStmt = new ConstantAssignment(null, type);
+          newSeq.statements.add(nullStmt);
+          args.add(new Argument(nullStmt));
+          continue;
+        }
+        
         // 20% chance to use a random value regardless of usable statements
         if (random.nextDouble() < 0.2) {
           Statement paramStmt = createParameter(type, newSeq, pool);
