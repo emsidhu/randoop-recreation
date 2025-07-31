@@ -79,11 +79,6 @@ public class SequenceGenerator {
       List<Constructor<?>> constructors = classConstructorLists.get(classIndex);
 
       if (methods.size() == 0) continue;
-      Method method = getRandomMethod(methods, methodUsageCount);      
-      // Increment usage count for the chosen method
-      methodUsageCount.put(method, methodUsageCount.get(method) + 1);
-
-      
       Sequence newSeq = new Sequence();
       // 75% chance to start from an existing valid sequence, 25% chance to start empty
       if (!validSeqs.isEmpty() && random.nextDouble() < 0.75) {
@@ -91,6 +86,10 @@ public class SequenceGenerator {
         Sequence baseSeq = validSeqs.get(random.nextInt(validSeqs.size()));
         newSeq.concat(baseSeq);
       }
+      
+      Method method = getRandomMethod(methods, methodUsageCount);      
+      // Increment usage count for the chosen method
+      methodUsageCount.put(method, methodUsageCount.get(method) + 1);
 
       List<Argument> args = new ArrayList<>();
 
