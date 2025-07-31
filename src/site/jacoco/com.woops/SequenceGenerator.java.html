@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SequenceGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.woops</a> &gt; <span class="el_source">SequenceGenerator.java</span></div><h1>SequenceGenerator.java</h1><pre class="source lang-java linenums">package com.woops;
+
+import com.woops.filters.*;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
+
+/**
+ * Generates sequences for test case generation using random method selection,
+ * filtering, and structure-based equivalence checking.
+ */
+<span class="nc" id="L15">public class SequenceGenerator {</span>
+<span class="nc" id="L16">  private final static Random random = new Random();</span>
+  
+  /** 
+    * Generates a list of sequences from the given classes.
+    *
+    * @param classes List of classes to generate sequences from.
+    * @param timeLimit Time limit in milliseconds.
+    * @param maxSequences Maximum number of sequences to generate.
+    * @return A Pair containing a list of the valid, and error-causing, Sequences
+  */
+  public static Pair&lt;List&lt;Sequence&gt;, List&lt;Sequence&gt;&gt; generateSequences(
+      List&lt;Class&lt;?&gt;&gt; classes, long timeLimit, int maxSequences, List&lt;String&gt; allowedMethods) {
+
+<span class="nc" id="L29">    List&lt;Sequence&gt; errorSeqs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L30">    SequencePool pool = new SequencePool();</span>
+<span class="nc" id="L31">    List&lt;Sequence&gt; validSeqs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L32">    Set&lt;String&gt; seenFingerprints = new HashSet&lt;&gt;();</span>
+
+<span class="nc" id="L34">    long startTime = System.currentTimeMillis();</span>
+<span class="nc" id="L35">    int sequenceCount = 0;</span>
+
+<span class="nc" id="L37">    List&lt;Filter&gt; filters = FilterLoader.loadFiltersFromConfig(&quot;config.json&quot;);</span>
+
+    // Get testable methods from each class
+<span class="nc" id="L40">    List&lt;List&lt;Method&gt;&gt; classMethodLists = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L41">    List&lt;List&lt;Constructor&lt;?&gt;&gt;&gt; classConstructorLists = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L43" title="All 2 branches missed.">    for (Class&lt;?&gt; cls : classes) {</span>
+<span class="nc" id="L44">      Method[] allMethods = cls.getDeclaredMethods();</span>
+<span class="nc" id="L45">      List&lt;Method&gt; methods = new ArrayList&lt;&gt;();</span>
+      
+      // Get method list
+<span class="nc bnc" id="L48" title="All 2 branches missed.">      for (Method method : allMethods) {</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (Modifier.isPublic(method.getModifiers()) &amp;&amp; </span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">            shouldIncludeMethod(method, allowedMethods)) {</span>
+<span class="nc" id="L51">          methods.add(method);</span>
+        }
+      }
+<span class="nc" id="L54">      classMethodLists.add(methods);</span>
+
+      // Get constructor list
+<span class="nc" id="L57">      Constructor&lt;?&gt;[] constructors = cls.getDeclaredConstructors();</span>
+<span class="nc" id="L58">      List&lt;Constructor&lt;?&gt;&gt; publicConstructors = new ArrayList&lt;&gt;();</span>
+      
+<span class="nc bnc" id="L60" title="All 2 branches missed.">      for (Constructor&lt;?&gt; constructor : constructors) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (Modifier.isPublic(constructor.getModifiers())) {</span>
+<span class="nc" id="L62">          publicConstructors.add(constructor);</span>
+        }
+      }
+<span class="nc" id="L65">      classConstructorLists.add(publicConstructors);</span>
+    }
+
+
+<span class="nc bnc" id="L69" title="All 4 branches missed.">    while (System.currentTimeMillis() - startTime &lt; timeLimit &amp;&amp;</span>
+<span class="nc" id="L70">           sequenceCount &lt; maxSequences) {</span>
+
+
+      // Pick a random class and method
+<span class="nc" id="L74">      int classIndex = new Random().nextInt(classes.size());</span>
+<span class="nc" id="L75">      Class&lt;?&gt; cls = classes.get(classIndex);</span>
+<span class="nc" id="L76">      List&lt;Method&gt; methods = classMethodLists.get(classIndex);</span>
+<span class="nc" id="L77">      List&lt;Constructor&lt;?&gt;&gt; constructors = classConstructorLists.get(classIndex);</span>
+
+<span class="nc bnc" id="L79" title="All 2 branches missed.">      if (methods.size() == 0) continue;</span>
+
+<span class="nc" id="L81">      Method method = methods.get(new Random().nextInt(methods.size()));</span>
+      
+<span class="nc" id="L83">      Sequence newSeq = new Sequence();</span>
+      // 80% chance to start from an existing valid sequence, 20% chance to start empty
+<span class="nc bnc" id="L85" title="All 4 branches missed.">      if (!validSeqs.isEmpty() &amp;&amp; random.nextDouble() &lt; 0.8) {</span>
+        // Use an existing valid sequence as starting point
+<span class="nc" id="L87">        Sequence baseSeq = validSeqs.get(random.nextInt(validSeqs.size()));</span>
+<span class="nc" id="L88">        newSeq.concat(baseSeq);</span>
+      }
+
+<span class="nc" id="L91">      List&lt;Argument&gt; args = new ArrayList&lt;&gt;();</span>
+
+      // Handle instance method: add receiver object
+<span class="nc bnc" id="L94" title="All 2 branches missed.">      if (!Modifier.isStatic(method.getModifiers())) {</span>
+        // First check current sequence
+<span class="nc" id="L96">        Statement receiverStmt = pool.findStatementOfType(newSeq, cls);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (receiverStmt == null) {</span>
+          // Check other sequences
+<span class="nc" id="L99">          Sequence receiverSequence = pool.findSequenceOfType(cls);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">          if (receiverSequence != null) {</span>
+<span class="nc" id="L101">            newSeq.concat(receiverSequence);</span>
+            // Get the required value out of the sequence
+<span class="nc" id="L103">            receiverStmt = pool.findStatementOfType(receiverSequence, cls);</span>
+<span class="nc" id="L104">            args.add(new Argument(receiverStmt));</span>
+          }
+<span class="nc" id="L106">        } else {</span>
+<span class="nc" id="L107">          args.add(new Argument(receiverStmt));</span>
+        }
+
+        // If no receiver exists, create one
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (receiverStmt == null) { </span>
+          try { 
+            
+            // Pick a random constructor
+<span class="nc" id="L115">            Constructor&lt;?&gt; constructor = constructors.get(random.nextInt(constructors.size()));</span>
+            
+            // Generate arguments for the constructor
+<span class="nc" id="L118">            List&lt;Argument&gt; constructorArgs = new ArrayList&lt;&gt;();</span>
+            
+            // Fill in constructor parameters
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            for (Class&lt;?&gt; paramType : constructor.getParameterTypes()) {</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">              if (random.nextDouble() &lt; 0.2) {</span>
+<span class="nc" id="L123">                Object randomValue = getRandomValue(paramType);</span>
+<span class="nc" id="L124">                Statement constantStmt = new ConstantAssignment(randomValue, paramType);</span>
+<span class="nc" id="L125">                newSeq.statements.add(constantStmt);</span>
+<span class="nc" id="L126">                constructorArgs.add(new Argument(constantStmt));</span>
+<span class="nc" id="L127">                continue;</span>
+              }
+
+              // Check if current sequence contains usable statement
+<span class="nc" id="L131">              Statement argStmt = pool.findStatementOfType(newSeq, paramType);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">              if (argStmt != null) {</span>
+<span class="nc" id="L133">                constructorArgs.add(new Argument(argStmt));</span>
+<span class="nc" id="L134">              } else {</span>
+                // Otherwise, check pool
+<span class="nc" id="L136">                Sequence argSequence = pool.findSequenceOfType(paramType);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                if (argSequence != null) {</span>
+<span class="nc" id="L138">                  newSeq.concat(argSequence);</span>
+<span class="nc" id="L139">                  argStmt = pool.findStatementOfType(argSequence, paramType);</span>
+<span class="nc" id="L140">                  constructorArgs.add(new Argument(argStmt));</span>
+<span class="nc" id="L141">                } else {</span>
+<span class="nc" id="L142">                  Object randomValue = getRandomValue(paramType);</span>
+<span class="nc" id="L143">                  Statement constantStmt = new ConstantAssignment(randomValue, paramType);</span>
+<span class="nc" id="L144">                  newSeq.statements.add(constantStmt);</span>
+<span class="nc" id="L145">                  constructorArgs.add(new Argument(constantStmt));</span>
+                }
+              }
+            }
+            
+<span class="nc" id="L150">            Statement constructorStmt = new ConstructorCall(constructor, constructorArgs);</span>
+<span class="nc" id="L151">            newSeq.statements.add(constructorStmt);</span>
+            
+<span class="nc" id="L153">            constructorStmt.execute();</span>
+<span class="nc" id="L154">            args.add(new Argument(constructorStmt));</span>
+<span class="nc" id="L155">          } catch (Exception e) {</span>
+<span class="nc" id="L156">            System.err.println(&quot;Failed to create constructor for &quot; + cls.getSimpleName() + &quot;: &quot; + e.getMessage());</span>
+<span class="nc" id="L157">            continue;</span>
+          }
+        }
+      }
+
+      // Generate arguments
+<span class="nc bnc" id="L163" title="All 2 branches missed.">      for (Class&lt;?&gt; type : method.getParameterTypes()) {</span>
+        // 20% chance to use a random value regardless of usable statements
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (random.nextDouble() &lt; 0.2) {</span>
+<span class="nc" id="L166">          Object randomValue = getRandomValue(type);</span>
+<span class="nc" id="L167">          Statement constantStmt = new ConstantAssignment(randomValue, type);</span>
+<span class="nc" id="L168">          newSeq.statements.add(constantStmt);</span>
+<span class="nc" id="L169">          args.add(new Argument(constantStmt));</span>
+<span class="nc" id="L170">          continue;</span>
+        }
+
+        // Check if current sequence contains usable statement
+<span class="nc" id="L174">        Statement argStmt = pool.findStatementOfType(newSeq, type);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (argStmt != null) {</span>
+<span class="nc" id="L176">          args.add(new Argument(argStmt));</span>
+<span class="nc" id="L177">        } else {</span>
+          // Otherwise, check pool
+<span class="nc" id="L179">          Sequence argSequence = pool.findSequenceOfType(type);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">          if (argSequence != null) {</span>
+<span class="nc" id="L181">            newSeq.concat(argSequence);</span>
+<span class="nc" id="L182">            argStmt = pool.findStatementOfType(argSequence, type);</span>
+<span class="nc" id="L183">            args.add(new Argument(argStmt));</span>
+<span class="nc" id="L184">          } else {</span>
+<span class="nc" id="L185">            Object randomValue = getRandomValue(type);</span>
+<span class="nc" id="L186">            Statement constantStmt = new ConstantAssignment(randomValue, type);</span>
+<span class="nc" id="L187">            newSeq.statements.add(constantStmt);</span>
+<span class="nc" id="L188">            args.add(new Argument(constantStmt));</span>
+          }
+        }
+      }
+      
+<span class="nc" id="L193">      newSeq.statements.add(new MethodCall(method, args));</span>
+<span class="nc" id="L194">      sequenceCount++;</span>
+
+      try {
+<span class="nc" id="L197">        newSeq.execute();</span>
+<span class="nc" id="L198">      } catch (Exception e) {</span>
+<span class="nc" id="L199">        System.out.println(&quot;Exception during execution: &quot; + e);</span>
+<span class="nc" id="L200">        errorSeqs.add(newSeq);</span>
+      }
+      
+      // Check structural equivalence
+<span class="nc" id="L204">      String fingerprint = newSeq.getSignatureFingerprint();</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">      if (seenFingerprints.contains(fingerprint)) {</span>
+<span class="nc" id="L206">        System.out.println(&quot;Sequence skipped due to duplicate structure&quot;);</span>
+<span class="nc" id="L207">        errorSeqs.add(newSeq);</span>
+<span class="nc" id="L208">        continue;</span>
+      }
+      
+<span class="nc" id="L211">      boolean passedAll = true;</span>
+      // Apply filters
+<span class="nc bnc" id="L213" title="All 2 branches missed.">      for (Filter f : filters) {</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        if (!f.isValid(newSeq)) {</span>
+<span class="nc" id="L215">          System.out.println(&quot;Sequence filtered by &quot; + f.getName());</span>
+<span class="nc" id="L216">          break;</span>
+        }
+      }
+
+      // Check for contract violations
+<span class="nc" id="L221">      Pair&lt;String, Statement&gt; contractResult = ContractChecker.checkStatements(newSeq.statements);</span>
+<span class="nc" id="L222">      String violatedContract = contractResult.first;</span>
+<span class="nc" id="L223">      Statement violatingStmt = contractResult.second;</span>
+      
+<span class="nc bnc" id="L225" title="All 2 branches missed.">      if (violatedContract != null) {</span>
+<span class="nc" id="L226">        System.out.println(&quot;Sequence violates contract: &quot; + violatedContract);</span>
+<span class="nc" id="L227">        newSeq.setViolatedContract(violatedContract);</span>
+<span class="nc" id="L228">        newSeq.setViolatingStmt(violatingStmt);</span>
+<span class="nc" id="L229">        passedAll = false;</span>
+      }
+
+<span class="nc bnc" id="L232" title="All 2 branches missed.">      if (passedAll) {</span>
+<span class="nc" id="L233">        System.out.println(&quot;Sequence accepted:&quot;);</span>
+<span class="nc" id="L234">        System.out.println(newSeq.toCode(true));</span>
+<span class="nc" id="L235">        validSeqs.add(newSeq);</span>
+<span class="nc" id="L236">      } else {</span>
+<span class="nc" id="L237">        seenFingerprints.add(fingerprint);</span>
+<span class="nc" id="L238">        pool.addSequence(newSeq);</span>
+<span class="nc" id="L239">        errorSeqs.add(newSeq);</span>
+      }
+
+    }
+
+<span class="nc" id="L244">    return new Pair&lt;&gt;(validSeqs, errorSeqs);</span>
+  }
+
+  // Returns a random string
+  private static String generateRandomString(int length) {
+<span class="nc" id="L249">    String characters = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;;</span>
+<span class="nc" id="L250">    StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc bnc" id="L252" title="All 2 branches missed.">    for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L253">      int index = random.nextInt(characters.length());</span>
+<span class="nc" id="L254">      sb.append(characters.charAt(index));</span>
+    }
+<span class="nc" id="L256">    return sb.toString();</span>
+  }
+
+  // Returns a random value for the given type.
+  private static Object getRandomValue(Class&lt;?&gt; type) {
+<span class="nc bnc" id="L261" title="All 4 branches missed.">    if (type == int.class || type == Integer.class) return random.nextInt(100) * (int) Math.signum(random.nextInt());</span>
+<span class="nc bnc" id="L262" title="All 4 branches missed.">    if (type == boolean.class || type == Boolean.class) return random.nextBoolean();</span>
+<span class="nc bnc" id="L263" title="All 4 branches missed.">    if (type == char.class || type == Character.class) return (char) (32 + random.nextInt(95));</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">    if (type == String.class) return generateRandomString(random.nextInt(50));</span>
+
+    // Allows for Array generation
+<span class="nc bnc" id="L267" title="All 2 branches missed.">    if (type.isArray()) {</span>
+<span class="nc" id="L268">      Class&lt;?&gt; componentType = type.getComponentType();</span>
+<span class="nc" id="L269">      int length = random.nextInt(20);</span>
+<span class="nc" id="L270">      Object array = Array.newInstance(componentType, length);</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">      for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L272">          Array.set(array, i, getRandomValue(componentType));</span>
+      }
+<span class="nc" id="L274">      return array;</span>
+    }
+
+    // Allows for List generation
+<span class="nc bnc" id="L278" title="All 2 branches missed.">    if (type == List.class) {</span>
+<span class="nc" id="L279">      List&lt;Object&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L280">      int size = random.nextInt(20);</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">      for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L282">          list.add(getRandomValue(Object.class));</span>
+      }
+<span class="nc" id="L284">      return list;</span>
+    } 
+
+<span class="nc" id="L287">    return null; // for other object types</span>
+  }
+
+  // Helper method to check if method should be included
+  private static boolean shouldIncludeMethod(Method method, List&lt;String&gt; allowedMethods) {
+    // If no methods specified, allow all methods
+<span class="nc bnc" id="L293" title="All 2 branches missed.">    if (allowedMethods.isEmpty()) return true;</span>
+    // Check if method name is in the allowed list
+<span class="nc" id="L295">    return allowedMethods.contains(method.getName());</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

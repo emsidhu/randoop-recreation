@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConstructorCall.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.woops</a> &gt; <span class="el_source">ConstructorCall.java</span></div><h1>ConstructorCall.java</h1><pre class="source lang-java linenums">package com.woops;
+
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.List;
+
+public class ConstructorCall extends Statement {
+  private final Constructor&lt;?&gt; constructor;
+  private final List&lt;Argument&gt; args; 
+
+  public ConstructorCall(Constructor&lt;?&gt; constructor, List&lt;Argument&gt; args) {
+<span class="nc" id="L12">    super(constructor.getDeclaringClass()); // initialize type</span>
+<span class="nc" id="L13">    this.constructor = constructor;</span>
+<span class="nc" id="L14">    this.args = args;</span>
+<span class="nc" id="L15">  }</span>
+
+  @Override
+  public void execute() throws Exception {
+<span class="nc" id="L19">      result = constructor.newInstance(args.stream().map(Argument::getValue).toArray());</span>
+<span class="nc" id="L20">  }</span>
+
+  // For equivalence filtering
+  @Override
+  public String getSignature() {
+<span class="nc" id="L25">    return &quot;new &quot; + constructor.getDeclaringClass().getSimpleName() +</span>
+<span class="nc" id="L26">           &quot;(&quot; + Arrays.toString(constructor.getParameterTypes()) + &quot;)&quot;;</span>
+  }
+  
+  public String toCode() { 
+<span class="nc" id="L30">    StringBuilder code = new StringBuilder();</span>
+
+    // Save the result to a variable
+<span class="nc" id="L33">    code.append(constructor.getName())</span>
+<span class="nc" id="L34">      .append(&quot; &quot;)</span>
+<span class="nc" id="L35">      .append(getVariableName())</span>
+<span class="nc" id="L36">      .append(&quot; = &quot;);</span>
+
+
+<span class="nc" id="L39">    code.append(&quot;new &quot;);</span>
+<span class="nc" id="L40">    code.append(constructor.getName());</span>
+<span class="nc" id="L41">    code.append(&quot;(&quot;);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">    for (int i = 0; i &lt; args.size(); i++) {</span>
+<span class="nc" id="L43">      Argument arg = args.get(i);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">      if (arg.hasStatement()) {</span>
+<span class="nc" id="L45">        code.append(arg.getStatement().getVariableName());</span>
+<span class="nc" id="L46">      } else {</span>
+<span class="nc" id="L47">        code.append(addQuotes(arg.getValue()));</span>
+      }
+<span class="nc bnc" id="L49" title="All 2 branches missed.">      if (i &lt; args.size() - 1) code.append(&quot;, &quot;);</span>
+    }
+
+<span class="nc" id="L52">    code.append(&quot;)&quot;);</span>
+<span class="nc" id="L53">    return code.toString();</span>
+
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

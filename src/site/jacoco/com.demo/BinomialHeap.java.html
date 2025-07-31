@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BinomialHeap.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.demo</a> &gt; <span class="el_source">BinomialHeap.java</span></div><h1>BinomialHeap.java</h1><pre class="source lang-java linenums">package com.demo;
+
+import java.util.HashSet;
+import java.util.Set;
+
+// Taken from JPF examples directory.
+public class BinomialHeap /*implements java.io.Serializable*/ {
+
+  // internal class BinomialHeapNode
+  private static class BinomialHeapNode /*implements java.io.Serializable*/ {
+    //private static final long serialVersionUID=6495900899527469811L;
+
+    private int key; // element in current node
+
+    private int degree; // depth of the binomial tree having the current node as its root
+
+    private BinomialHeapNode parent; // pointer to the parent of the current node
+
+    private BinomialHeapNode sibling; // pointer to the next binomial tree in the list
+
+    private BinomialHeapNode child; // pointer to the first child of the current node
+
+<span class="fc" id="L23">    private BinomialHeapNode(int k) {</span>
+      //    private BinomialHeapNode(Integer k) {
+<span class="fc" id="L25">      key = k;</span>
+<span class="fc" id="L26">      degree = 0;</span>
+<span class="fc" id="L27">      parent = null;</span>
+<span class="fc" id="L28">      sibling = null;</span>
+<span class="fc" id="L29">      child = null;</span>
+<span class="fc" id="L30">    }</span>
+
+    private int getKey() { // returns the element in the current node
+<span class="nc" id="L33">      return key;</span>
+    }
+
+    private void setKey(int value) { // sets the element in the current node
+<span class="nc" id="L37">      key = value;</span>
+<span class="nc" id="L38">    }</span>
+
+    private int getDegree() { // returns the degree of the current node
+<span class="nc" id="L41">      return degree;</span>
+    }
+
+    private void setDegree(int deg) { // sets the degree of the current node
+<span class="nc" id="L45">      degree = deg;</span>
+<span class="nc" id="L46">    }</span>
+
+    private BinomialHeapNode getParent() { // returns the father of the current node
+<span class="nc" id="L49">      return parent;</span>
+    }
+
+    private void setParent(BinomialHeapNode par) { // sets the father of the current node
+<span class="nc" id="L53">      parent = par;</span>
+<span class="nc" id="L54">    }</span>
+
+    private BinomialHeapNode getSibling() { // returns the next binomial tree in the list
+<span class="nc" id="L57">      return sibling;</span>
+    }
+
+    private void setSibling(BinomialHeapNode nextBr) { // sets the next binomial tree in the list
+<span class="nc" id="L61">      sibling = nextBr;</span>
+<span class="nc" id="L62">    }</span>
+
+    private BinomialHeapNode getChild() { // returns the first child of the current node
+<span class="nc" id="L65">      return child;</span>
+    }
+
+    private void setChild(BinomialHeapNode firstCh) { // sets the first child of the current node
+<span class="nc" id="L69">      child = firstCh;</span>
+<span class="nc" id="L70">    }</span>
+
+    private int getSize() {
+<span class="fc" id="L73">      return (1</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">          + ((child == null) ? 0 : child.getSize())</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">          + ((sibling == null) ? 0 : sibling.getSize()));</span>
+    }
+
+    private BinomialHeapNode reverse(BinomialHeapNode sibl) {
+      BinomialHeapNode ret;
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">      if (sibling != null) ret = sibling.reverse(this);</span>
+<span class="fc" id="L81">      else ret = this;</span>
+<span class="fc" id="L82">      sibling = sibl;</span>
+<span class="fc" id="L83">      return ret;</span>
+    }
+
+    private BinomialHeapNode findMinNode() {
+<span class="fc" id="L87">      BinomialHeapNode x = this, y = this;</span>
+<span class="fc" id="L88">      int min = x.key;</span>
+
+<span class="fc bfc" id="L90" title="All 2 branches covered.">      while (x != null) {</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (x.key &lt; min) {</span>
+<span class="nc" id="L92">          y = x;</span>
+<span class="nc" id="L93">          min = x.key;</span>
+        }
+<span class="fc" id="L95">        x = x.sibling;</span>
+      }
+
+<span class="fc" id="L98">      return y;</span>
+    }
+
+    // Find a node with the given key
+    private BinomialHeapNode findANodeWithKey(int value) {
+<span class="fc" id="L103">      BinomialHeapNode temp = this, node = null;</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">      while (temp != null) {</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        if (temp.key == value) {</span>
+<span class="fc" id="L106">          node = temp;</span>
+<span class="fc" id="L107">          break;</span>
+        }
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (temp.child == null) temp = temp.sibling;</span>
+        else {
+<span class="nc" id="L111">          node = temp.child.findANodeWithKey(value);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">          if (node == null) temp = temp.sibling;</span>
+          else break;
+        }
+      }
+
+<span class="fc" id="L117">      return node;</span>
+    }
+  }
+
+  // end of helper class BinomialHeapNode
+
+  //--------------------------------------------------------------------
+<span class="fc" id="L124">  private static void outputTestSequence(int number) {}</span>
+
+<span class="fc" id="L126">  private static long startTime = System.currentTimeMillis();</span>
+
+  //private native boolean checkAbstractState(int which);
+
+<span class="fc" id="L130">  public static Set&lt;String&gt; branchFingerprints = new HashSet&lt;&gt;();</span>
+
+  // private static Set abs_states = new HashSet();
+
+<span class="fc" id="L134">  public static int counter = 0;</span>
+
+  private static String nodeFingerprint(BinomialHeapNode n) {
+<span class="fc" id="L137">    String res = &quot;&quot;;</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">    if (n == null) {</span>
+<span class="fc" id="L139">      res += &quot;null&quot;;</span>
+<span class="fc" id="L140">    } else {</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">      res += (n.child == null) ? &quot;C-&quot; : &quot;C+&quot;;</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">      res += (n.sibling == null) ? &quot;S-&quot; : &quot;S+&quot;;</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">      res += (n.parent == null) ? &quot;P-&quot; : &quot;P+&quot;;</span>
+    }
+<span class="fc" id="L145">    return res;</span>
+  }
+
+  private static int gen_native(int br, BinomialHeapNode n1, BinomialHeapNode n2) {
+<span class="fc" id="L149">    String res = br + &quot;,&quot;;</span>
+    // For Basic Block Coverage
+<span class="fc" id="L151">    res += nodeFingerprint(n1);</span>
+<span class="fc" id="L152">    res += nodeFingerprint(n2);</span>
+<span class="fc bfc" id="L153" title="All 4 branches covered.">    if (n1 != null &amp;&amp; n2 != null) {</span>
+      // commented out because of symbolic version
+      //         temp = env.getIntField(n1,null,&quot;key&quot;);
+      //         temp2 = env.getIntField(n2,null,&quot;key&quot;);
+      //         if (temp&lt;temp2) res+=&quot;&lt;&quot;;
+      //         if (temp==temp2) res+=&quot;=&quot;;
+      //         if (temp&gt;temp2) res+=&quot;&gt;&quot;;
+<span class="fc" id="L160">      int itemp = n1.degree;</span>
+<span class="fc" id="L161">      int itemp2 = n2.degree;</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">      if (itemp &lt; itemp2) res += &quot;&lt;&quot;;</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">      if (itemp == itemp2) res += &quot;=&quot;;</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">      if (itemp &gt; itemp2) res += &quot;&gt;&quot;;</span>
+    }
+    //END comment here
+<span class="fc bfc" id="L167" title="All 2 branches covered.">    if (!branchFingerprints.contains(res)) {</span>
+<span class="fc" id="L168">      branchFingerprints.add(res);</span>
+      // System.out.println(&quot;TIME=&quot; + (System.currentTimeMillis() - startTime));
+<span class="fc" id="L170">      System.out.println(&quot;Test case number &quot; + branchFingerprints.size() + &quot; for '&quot; + res + &quot;': &quot;);</span>
+<span class="fc" id="L171">      counter = branchFingerprints.size();</span>
+<span class="fc" id="L172">      return branchFingerprints.size();</span>
+    }
+<span class="fc" id="L174">    return 0;</span>
+  }
+
+  //     private native static int gen_native(int br, BinomialHeapNode n1,
+  //             BinomialHeapNode n2); //SPECIFY
+
+  private static void gen(int br, BinomialHeapNode n1, BinomialHeapNode n2) { //SPECIFY
+<span class="fc" id="L181">    int c = gen_native(br, n1, n2); //SPECIFY</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">    if (c != 0) outputTestSequence(c);</span>
+<span class="fc" id="L183">  }</span>
+
+  //-------------------------------------------------------------------
+
+  private BinomialHeapNode Nodes;
+
+  private int size;
+
+<span class="fc" id="L191">  public BinomialHeap() {</span>
+<span class="fc" id="L192">    Nodes = null;</span>
+<span class="fc" id="L193">    size = 0;</span>
+<span class="fc" id="L194">  }</span>
+
+  // 2. Find the minimum key
+  public int findMinimum() {
+<span class="fc" id="L198">    return Nodes.findMinNode().key;</span>
+  }
+
+  // 3. Unite two binomial heaps
+  // helper procedure
+  private void merge(BinomialHeapNode binHeap) {
+<span class="fc" id="L204">    BinomialHeapNode temp1 = Nodes, temp2 = binHeap;</span>
+<span class="pc bpc" id="L205" title="1 of 4 branches missed.">    while ((temp1 != null) &amp;&amp; (temp2 != null)) {</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">      if (temp1.degree == temp2.degree) {</span>
+<span class="fc" id="L207">        gen(1, temp1, temp2);</span>
+<span class="fc" id="L208">        BinomialHeapNode tmp = temp2;</span>
+<span class="fc" id="L209">        temp2 = temp2.sibling;</span>
+<span class="fc" id="L210">        tmp.sibling = temp1.sibling;</span>
+<span class="fc" id="L211">        temp1.sibling = tmp;</span>
+<span class="fc" id="L212">        temp1 = tmp.sibling;</span>
+<span class="fc" id="L213">      } else {</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        if (temp1.degree &lt; temp2.degree) {</span>
+<span class="nc bnc" id="L215" title="All 4 branches missed.">          if ((temp1.sibling == null) || (temp1.sibling.degree &gt; temp2.degree)) {</span>
+<span class="nc" id="L216">            gen(2, temp1, temp2);</span>
+<span class="nc" id="L217">            BinomialHeapNode tmp = temp2;</span>
+<span class="nc" id="L218">            temp2 = temp2.sibling;</span>
+<span class="nc" id="L219">            tmp.sibling = temp1.sibling;</span>
+<span class="nc" id="L220">            temp1.sibling = tmp;</span>
+<span class="nc" id="L221">            temp1 = tmp.sibling;</span>
+<span class="nc" id="L222">          } else {</span>
+<span class="nc" id="L223">            gen(3, temp1, temp2);</span>
+<span class="nc" id="L224">            temp1 = temp1.sibling;</span>
+          }
+<span class="nc" id="L226">        } else {</span>
+<span class="nc" id="L227">          BinomialHeapNode tmp = temp1;</span>
+<span class="nc" id="L228">          temp1 = temp2;</span>
+<span class="nc" id="L229">          temp2 = temp2.sibling;</span>
+<span class="nc" id="L230">          temp1.sibling = tmp;</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">          if (tmp == Nodes) {</span>
+<span class="nc" id="L232">            gen(4, temp1, temp2);</span>
+<span class="nc" id="L233">            Nodes = temp1;</span>
+<span class="nc" id="L234">          } else {</span>
+<span class="nc" id="L235">            gen(5, temp1, temp2);</span>
+          }
+        }
+      }
+    }
+
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">    if (temp1 == null) {</span>
+<span class="fc" id="L242">      temp1 = Nodes;</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">      while (temp1.sibling != null) {</span>
+<span class="fc" id="L244">        gen(6, temp1, temp2);</span>
+<span class="fc" id="L245">        temp1 = temp1.sibling;</span>
+      }
+<span class="fc" id="L247">      temp1.sibling = temp2;</span>
+<span class="fc" id="L248">    } else {</span>
+<span class="nc" id="L249">      gen(7, temp1, temp2);</span>
+    }
+<span class="fc" id="L251">  }</span>
+
+  // another helper procedure
+  private void unionNodes(BinomialHeapNode binHeap) {
+<span class="fc" id="L255">    merge(binHeap);</span>
+
+<span class="fc" id="L257">    BinomialHeapNode prevTemp = null, temp = Nodes, nextTemp = Nodes.sibling;</span>
+
+<span class="fc bfc" id="L259" title="All 2 branches covered.">    while (nextTemp != null) {</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">      if ((temp.degree != nextTemp.degree)</span>
+<span class="pc bpc" id="L261" title="3 of 4 branches missed.">          || ((nextTemp.sibling != null) &amp;&amp; (nextTemp.sibling.degree == temp.degree))) {</span>
+<span class="nc" id="L262">        gen(8, temp, nextTemp);</span>
+<span class="nc" id="L263">        prevTemp = temp;</span>
+<span class="nc" id="L264">        temp = nextTemp;</span>
+<span class="nc" id="L265">      } else {</span>
+<span class="pc bpc" id="L266" title="1 of 2 branches missed.">        if (temp.key &lt;= nextTemp.key) {</span>
+<span class="fc" id="L267">          gen(9, temp, nextTemp);</span>
+<span class="fc" id="L268">          temp.sibling = nextTemp.sibling;</span>
+<span class="fc" id="L269">          nextTemp.parent = temp;</span>
+<span class="fc" id="L270">          nextTemp.sibling = temp.child;</span>
+<span class="fc" id="L271">          temp.child = nextTemp;</span>
+<span class="fc" id="L272">          temp.degree++;</span>
+<span class="fc" id="L273">        } else {</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">          if (prevTemp == null) {</span>
+<span class="nc" id="L275">            gen(10, temp, nextTemp);</span>
+<span class="nc" id="L276">            Nodes = nextTemp;</span>
+<span class="nc" id="L277">          } else {</span>
+<span class="nc" id="L278">            gen(11, temp, nextTemp);</span>
+<span class="nc" id="L279">            prevTemp.sibling = nextTemp;</span>
+          }
+<span class="nc" id="L281">          temp.parent = nextTemp;</span>
+<span class="nc" id="L282">          temp.sibling = nextTemp.child;</span>
+<span class="nc" id="L283">          nextTemp.child = temp;</span>
+<span class="nc" id="L284">          nextTemp.degree++;</span>
+<span class="nc" id="L285">          temp = nextTemp;</span>
+        }
+      }
+<span class="fc" id="L288">      gen(12, temp, nextTemp);</span>
+
+<span class="fc" id="L290">      nextTemp = temp.sibling;</span>
+    }
+<span class="fc" id="L292">  }</span>
+
+  // 4. Insert a node with a specific value
+  public void insert(int value) {
+<span class="fc bfc" id="L296" title="All 2 branches covered.">    if (value &gt; 0) {</span>
+<span class="fc" id="L297">      BinomialHeapNode temp = new BinomialHeapNode(value);</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">      if (Nodes == null) {</span>
+<span class="fc" id="L299">        Nodes = temp;</span>
+<span class="fc" id="L300">        size = 1;</span>
+<span class="fc" id="L301">      } else {</span>
+<span class="fc" id="L302">        unionNodes(temp);</span>
+<span class="fc" id="L303">        size++;</span>
+      }
+    }
+<span class="fc" id="L306">  }</span>
+
+  // 5. Extract the node with the minimum key
+  public int extractMin() {
+<span class="fc bfc" id="L310" title="All 2 branches covered.">    if (Nodes == null) {</span>
+<span class="fc" id="L311">      return -1;</span>
+    }
+
+<span class="fc" id="L314">    BinomialHeapNode temp = Nodes, prevTemp = null;</span>
+<span class="fc" id="L315">    BinomialHeapNode minNode = Nodes.findMinNode();</span>
+<span class="pc bpc" id="L316" title="1 of 2 branches missed.">    while (temp.key != minNode.key) {</span>
+<span class="nc" id="L317">      gen(13, temp, prevTemp);</span>
+<span class="nc" id="L318">      prevTemp = temp;</span>
+<span class="nc" id="L319">      temp = temp.sibling;</span>
+    }
+
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">    if (prevTemp == null) {</span>
+<span class="fc" id="L323">      gen(14, temp, prevTemp);</span>
+<span class="fc" id="L324">      Nodes = temp.sibling;</span>
+<span class="fc" id="L325">    } else {</span>
+<span class="nc" id="L326">      gen(15, temp, prevTemp);</span>
+<span class="nc" id="L327">      prevTemp.sibling = temp.sibling;</span>
+    }
+<span class="fc" id="L329">    temp = temp.child;</span>
+<span class="fc" id="L330">    BinomialHeapNode fakeNode = temp;</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">    while (temp != null) {</span>
+<span class="fc" id="L332">      gen(16, temp, prevTemp);</span>
+<span class="fc" id="L333">      temp.parent = null;</span>
+<span class="fc" id="L334">      temp = temp.sibling;</span>
+    }
+
+<span class="pc bpc" id="L337" title="1 of 4 branches missed.">    if ((Nodes == null) &amp;&amp; (fakeNode == null)) {</span>
+<span class="fc" id="L338">      gen(17, temp, prevTemp);</span>
+<span class="fc" id="L339">      size = 0;</span>
+<span class="fc" id="L340">    } else {</span>
+<span class="pc bpc" id="L341" title="2 of 4 branches missed.">      if ((Nodes == null) &amp;&amp; (fakeNode != null)) {</span>
+<span class="fc" id="L342">        gen(18, Nodes, fakeNode);</span>
+<span class="fc" id="L343">        Nodes = fakeNode.reverse(null);</span>
+<span class="fc" id="L344">        size = Nodes.getSize();</span>
+<span class="fc" id="L345">      } else {</span>
+<span class="nc bnc" id="L346" title="All 4 branches missed.">        if ((Nodes != null) &amp;&amp; (fakeNode == null)) {</span>
+<span class="nc" id="L347">          gen(19, Nodes, fakeNode);</span>
+<span class="nc" id="L348">          size = Nodes.getSize();</span>
+<span class="nc" id="L349">        } else {</span>
+<span class="nc" id="L350">          gen(20, Nodes, fakeNode);</span>
+<span class="nc" id="L351">          unionNodes(fakeNode.reverse(null));</span>
+<span class="nc" id="L352">          size = Nodes.getSize();</span>
+        }
+      }
+    }
+
+<span class="fc" id="L357">    return minNode.key;</span>
+  }
+
+  // 6. Decrease a key value
+  public void decreaseKeyVariable(int old_value, int new_value) {
+<span class="fc" id="L362">    BinomialHeapNode temp = Nodes.findANodeWithKey(old_value);</span>
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">    if (temp == null) return;</span>
+<span class="fc" id="L364">    temp.key = new_value;</span>
+<span class="fc" id="L365">    BinomialHeapNode tempParent = temp.parent;</span>
+
+<span class="pc bpc" id="L367" title="3 of 4 branches missed.">    while ((tempParent != null) &amp;&amp; (temp.key &lt; tempParent.key)) {</span>
+<span class="nc" id="L368">      int z = temp.key;</span>
+<span class="nc" id="L369">      gen(21, temp, tempParent);</span>
+<span class="nc" id="L370">      temp.key = tempParent.key;</span>
+<span class="nc" id="L371">      tempParent.key = z;</span>
+
+<span class="nc" id="L373">      temp = tempParent;</span>
+<span class="nc" id="L374">      tempParent = tempParent.parent;</span>
+    }
+<span class="fc" id="L376">  }</span>
+
+  // 7. Delete a node with a certain key
+  public void delete(int value) {
+<span class="pc bpc" id="L380" title="1 of 4 branches missed.">    if ((Nodes != null) &amp;&amp; (Nodes.findANodeWithKey(value) != null)) {</span>
+<span class="fc" id="L381">      decreaseKeyVariable(value, findMinimum() - 1);</span>
+<span class="fc" id="L382">      extractMin();</span>
+    }
+<span class="fc" id="L384">  }</span>
+
+  private static void main(String[] Argv) {
+<span class="nc" id="L387">    BinomialHeap b = new BinomialHeap();</span>
+
+<span class="nc" id="L389">    b.insert(3);</span>
+<span class="nc" id="L390">    b.insert(5);</span>
+<span class="nc" id="L391">    System.out.println(&quot;min: &quot; + b.findMinimum());</span>
+<span class="nc" id="L392">    System.out.println(&quot;size: &quot; + b.size);</span>
+<span class="nc" id="L393">    b.extractMin();</span>
+<span class="nc" id="L394">    System.out.println(&quot;min: &quot; + b.findMinimum());</span>
+<span class="nc" id="L395">  }</span>
+}
+// end of class BinomialHeap
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

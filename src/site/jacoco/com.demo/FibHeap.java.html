@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FibHeap.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.demo</a> &gt; <span class="el_source">FibHeap.java</span></div><h1>FibHeap.java</h1><pre class="source lang-java linenums">package com.demo;
+
+//Taken from JPF examples directory.
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Vector;
+
+//XXX not implemented, but keeping because historical and might want to implement eventually
+//import randoop.NotPartOfState;
+
+// FibHeap.java
+// from : http://sciris.shu.edu/~borowski/Puzzle/Puzzle.html
+
+public class FibHeap {
+
+<span class="fc" id="L17">  private static long startTime = System.currentTimeMillis();</span>
+
+  public Node min;
+
+  private int n;
+
+<span class="fc" id="L23">  public FibHeap() {}</span>
+
+  //    --------------------------------------------------------------------
+<span class="fc" id="L26">  private static void outputTestSequence(int number) {}</span>
+
+  //public native boolean checkAbstractState(int which);
+
+  // XXX see note above
+  //   @NotPartOfState
+<span class="fc" id="L32">  private Vector&lt;Node&gt; cachedNodes = new Vector&lt;&gt;();</span>
+
+  /**
+   * Gives information similar to branch coverage. Each element is created by {@link #gen}. Each
+   * element is a string of the form branchNumber + &quot;,&quot; + node1 + node2 + extra, where branchNumber
+   * is a branch output in the program and nodeN is a brief string fingerprint of the node; see
+   * {@link #nodeFingerprint}.
+   */
+<span class="fc" id="L40">  public static Set&lt;String&gt; branchFingerprints = new HashSet&lt;&gt;();</span>
+
+  // private static Set abs_states = new HashSet();
+
+<span class="fc" id="L44">  public static int counter = 0;</span>
+
+  /** Return a string &quot;1&quot; or &quot;0&quot; depending on whether the argument is true or false. */
+  private static String asBinary(boolean b) {
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">    return b ? &quot;1&quot; : &quot;0&quot;;</span>
+  }
+
+  /**
+   * Given a node, produces a 5-character fingerprint of the node, where each character is '0' or
+   * '1'. Returns &quot;null&quot; if the argument is null.
+   */
+  private static String nodeFingerprint(Node n) {
+<span class="fc bfc" id="L56" title="All 2 branches covered.">    if (n == null) {</span>
+<span class="fc" id="L57">      return &quot;null&quot;;</span>
+    } else {
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">      return asBinary(n.child == null)</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">          + asBinary(n.parent == null)</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">          + asBinary(n.right == n)</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">          + asBinary(n.left == n)</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">          + asBinary(n.degree == 0);</span>
+    }
+  }
+
+  private static int gen_native(int br, Node n, Node m) {
+<span class="fc" id="L68">    String res = br + &quot;,&quot;;</span>
+    //        For Basic Block Coverage
+    //        START comment here
+
+<span class="fc" id="L72">    res += nodeFingerprint(n);</span>
+<span class="fc" id="L73">    res += nodeFingerprint(m);</span>
+<span class="pc bpc" id="L74" title="1 of 4 branches missed.">    if (n != null &amp;&amp; m != null) {</span>
+      // commented out because of symbolic execution...
+      //        res += asBinary(n.cost&gt;m.cost);
+<span class="nc bnc" id="L77" title="All 2 branches missed.">      res += asBinary(n.child == m);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">      res += asBinary(m.child == n);</span>
+    }
+    //For Basic Block Coverage
+    //END comment here
+
+<span class="fc bfc" id="L83" title="All 2 branches covered.">    if (!branchFingerprints.contains(res)) {</span>
+<span class="fc" id="L84">      branchFingerprints.add(res);</span>
+      // System.out.println(&quot;TIME=&quot; + (System.currentTimeMillis() - startTime));
+<span class="fc" id="L86">      System.out.println(&quot;Test case number &quot; + branchFingerprints.size() + &quot; for '&quot; + res + &quot;': &quot;);</span>
+<span class="fc" id="L87">      counter = branchFingerprints.size();</span>
+<span class="fc" id="L88">      return branchFingerprints.size();</span>
+    }
+<span class="fc" id="L90">    return 0;</span>
+  }
+
+  /**
+   * This method constructs a string representation of its three arguments and inserts that in the
+   * {@link #branchFingerprints} set; see it for documentation of the output of this method.
+   *
+   * &lt;p&gt;In this file, gen() is called as the first statement, on both branches of every conditional.
+   * Therefore, at the end of execution, {@link #branchFingerprints} contains very fine-grained
+   * information about branch coverege: for each branch, each time it was executed, the relevant
+   * node(s).
+   */
+  private static void gen(int br, Node n, Node m) { //SPECIFY
+<span class="fc" id="L103">    int c = gen_native(br, n, m); //SPECIFY</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">    if (c != 0) outputTestSequence(c);</span>
+<span class="fc" id="L105">  }</span>
+
+  //-------------------------------------------------------------------
+
+  private void cascadingCut(Node y) {
+<span class="nc" id="L110">    Node z = y.parent;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (z != null) {</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">      if (!y.mark) {</span>
+<span class="nc" id="L113">        gen(0, y, null);</span>
+<span class="nc" id="L114">        y.mark = true;</span>
+<span class="nc" id="L115">      } else {</span>
+<span class="nc" id="L116">        gen(1, y, null);</span>
+<span class="nc" id="L117">        cut(y, z);</span>
+<span class="nc" id="L118">        cascadingCut(z);</span>
+      }
+<span class="nc" id="L120">    } else {</span>
+<span class="nc" id="L121">      gen(2, y, null);</span>
+    }
+<span class="nc" id="L123">  }</span>
+
+  private void consolidate() {
+<span class="nc" id="L126">    int D = n + 1;</span>
+<span class="nc" id="L127">    Node[] A = new Node[D];</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    for (int i = 0; i &lt; D; i++) {</span>
+<span class="nc" id="L129">      gen(3, A[i], null);</span>
+<span class="nc" id="L130">      A[i] = null;</span>
+    }
+
+<span class="nc" id="L133">    int k = 0;</span>
+<span class="nc" id="L134">    Node x = min;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    if (x != null) {</span>
+<span class="nc" id="L136">      k++;</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">      for (x = x.right; x != min; x = x.right) {</span>
+<span class="nc" id="L138">        gen(4, x, null);</span>
+<span class="nc" id="L139">        k++;</span>
+      }
+    }
+<span class="nc bnc" id="L142" title="All 2 branches missed.">    while (k &gt; 0) {</span>
+<span class="nc" id="L143">      int d = x.degree;</span>
+<span class="nc" id="L144">      Node rightNode = x.right;</span>
+<span class="nc" id="L145">      gen(5, x, null);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">      while (A[d] != null) {</span>
+<span class="nc" id="L147">        Node y = A[d];</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (x.cost &gt; y.cost) {</span>
+<span class="nc" id="L149">          gen(6, x, y);</span>
+<span class="nc" id="L150">          Node temp = y;</span>
+<span class="nc" id="L151">          y = x;</span>
+<span class="nc" id="L152">          x = temp;</span>
+<span class="nc" id="L153">        } else {</span>
+<span class="nc" id="L154">          gen(7, x, y);</span>
+        }
+<span class="nc" id="L156">        link(y, x);</span>
+<span class="nc" id="L157">        A[d] = null;</span>
+<span class="nc" id="L158">        d++;</span>
+      }
+
+<span class="nc" id="L161">      gen(8, x, null);</span>
+<span class="nc" id="L162">      A[d] = x;</span>
+<span class="nc" id="L163">      x = rightNode;</span>
+<span class="nc" id="L164">      k--;</span>
+    }
+
+<span class="nc" id="L167">    min = null;</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">    for (int i = 0; i &lt; D; i++)</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">      if (A[i] != null)</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (min != null) {</span>
+<span class="nc" id="L171">          gen(9, A[i], null);</span>
+<span class="nc" id="L172">          A[i].left.right = A[i].right;</span>
+<span class="nc" id="L173">          A[i].right.left = A[i].left;</span>
+<span class="nc" id="L174">          A[i].left = min;</span>
+<span class="nc" id="L175">          A[i].right = min.right;</span>
+<span class="nc" id="L176">          min.right = A[i];</span>
+<span class="nc" id="L177">          A[i].right.left = A[i];</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">          if (A[i].cost &lt; min.cost) {</span>
+<span class="nc" id="L179">            gen(10, A[i], min);</span>
+<span class="nc" id="L180">            min = A[i];</span>
+<span class="nc" id="L181">          } else {</span>
+<span class="nc" id="L182">            gen(11, A[i], min);</span>
+          }
+<span class="nc" id="L184">        } else {</span>
+<span class="nc" id="L185">          gen(12, A[i], null);</span>
+<span class="nc" id="L186">          min = A[i];</span>
+        }
+<span class="nc" id="L188">  }</span>
+
+  private void cut(Node x, Node y) {
+<span class="nc" id="L191">    x.left.right = x.right;</span>
+<span class="nc" id="L192">    x.right.left = x.left;</span>
+<span class="nc" id="L193">    y.degree--;</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">    if (y.child == x) {</span>
+<span class="nc" id="L195">      gen(13, x, y);</span>
+<span class="nc" id="L196">      y.child = x.right;</span>
+<span class="nc" id="L197">    } else {</span>
+<span class="nc" id="L198">      gen(20, x, y);</span>
+    }
+<span class="nc bnc" id="L200" title="All 2 branches missed.">    if (y.degree == 0) {</span>
+<span class="nc" id="L201">      gen(14, y, x);</span>
+<span class="nc" id="L202">      y.child = null;</span>
+<span class="nc" id="L203">    } else {</span>
+<span class="nc" id="L204">      gen(24, x, y);</span>
+    }
+<span class="nc" id="L206">    x.left = min;</span>
+<span class="nc" id="L207">    x.right = min.right;</span>
+<span class="nc" id="L208">    min.right = x;</span>
+<span class="nc" id="L209">    x.right.left = x;</span>
+<span class="nc" id="L210">    x.parent = null;</span>
+<span class="nc" id="L211">    x.mark = false;</span>
+<span class="nc" id="L212">  }</span>
+
+  public void decreaseKey(Node x, int c) {
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">    if (c &gt; x.cost) {</span>
+      //System.err.println(&quot;Error: new key is greater than current key.&quot;);
+<span class="nc" id="L217">      return;</span>
+    }
+<span class="fc" id="L219">    x.cost = c;</span>
+<span class="fc" id="L220">    Node y = x.parent;</span>
+
+<span class="pc bpc" id="L222" title="3 of 4 branches missed.">    if ((y != null) &amp;&amp; (x.cost &lt; y.cost)) {</span>
+<span class="nc" id="L223">      cut(x, y);</span>
+<span class="nc" id="L224">      cascadingCut(y);</span>
+    }
+
+    //System.out.println(&quot;min = &quot; + min);
+
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">    if (x.cost &lt; min.cost) min = x;</span>
+<span class="fc" id="L230">  }</span>
+
+<span class="fc" id="L232">  public static java.util.Random rand = new java.util.Random(0);</span>
+
+  public void deleteRandomNode() {
+<span class="fc bfc" id="L235" title="All 2 branches covered.">    if (cachedNodes.size() == 0) return;</span>
+<span class="fc" id="L236">    delete(cachedNodes.get(rand.nextInt(cachedNodes.size())));</span>
+<span class="fc" id="L237">  }</span>
+
+  public void delete(Node node) {
+<span class="fc" id="L240">    decreaseKey(node, Integer.MIN_VALUE);</span>
+<span class="fc" id="L241">    removeMin();</span>
+<span class="fc" id="L242">  }</span>
+
+  public boolean empty() {
+<span class="pc bpc" id="L245" title="1 of 2 branches missed.">    return min == null;</span>
+  }
+
+  public void insert(int c) {
+<span class="fc" id="L249">    Node n = new Node(c, this);</span>
+<span class="fc" id="L250">    cachedNodes.add(n);</span>
+<span class="fc" id="L251">    insert(n);</span>
+<span class="fc" id="L252">  }</span>
+
+  public Node insert(Node toInsert) {
+<span class="pc bpc" id="L255" title="1 of 2 branches missed.">    if (min != null) {</span>
+<span class="nc" id="L256">      toInsert.left = min;</span>
+<span class="nc" id="L257">      toInsert.right = min.right;</span>
+<span class="nc" id="L258">      min.right = toInsert;</span>
+<span class="nc" id="L259">      toInsert.right.left = toInsert;</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">      if (toInsert.cost &lt; min.cost) {</span>
+<span class="nc" id="L261">        gen(21, min, null);</span>
+<span class="nc" id="L262">        min = toInsert;</span>
+<span class="nc" id="L263">      } else {</span>
+<span class="nc" id="L264">        gen(22, min, null);</span>
+      }
+<span class="nc" id="L266">    } else {</span>
+<span class="fc" id="L267">      min = toInsert;</span>
+<span class="fc" id="L268">      gen(23, min, null);</span>
+    }
+<span class="fc" id="L270">    n++;</span>
+<span class="fc" id="L271">    return toInsert;</span>
+  }
+
+  private void link(Node node1, Node node2) {
+<span class="nc" id="L275">    node1.left.right = node1.right;</span>
+<span class="nc" id="L276">    node1.right.left = node1.left;</span>
+<span class="nc" id="L277">    node1.parent = node2;</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">    if (node2.child == null) {</span>
+<span class="nc" id="L279">      gen(15, node1, node2);</span>
+<span class="nc" id="L280">      node2.child = node1;</span>
+<span class="nc" id="L281">      node1.right = node1;</span>
+<span class="nc" id="L282">      node1.left = node1;</span>
+<span class="nc" id="L283">    } else {</span>
+<span class="nc" id="L284">      gen(16, node1, node2);</span>
+<span class="nc" id="L285">      node1.left = node2.child;</span>
+<span class="nc" id="L286">      node1.right = node2.child.right;</span>
+<span class="nc" id="L287">      node2.child.right = node1;</span>
+<span class="nc" id="L288">      node1.right.left = node1;</span>
+    }
+<span class="nc" id="L290">    node2.degree++;</span>
+<span class="nc" id="L291">    node1.mark = false;</span>
+<span class="nc" id="L292">  }</span>
+
+  public Node min() {
+<span class="fc" id="L295">    return min;</span>
+  }
+
+  public Node removeMin() {
+<span class="fc" id="L299">    Node z = min;</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">    if (z != null) {</span>
+<span class="fc" id="L301">      int i = z.degree;</span>
+<span class="fc" id="L302">      Node x = z.child;</span>
+<span class="pc bpc" id="L303" title="1 of 2 branches missed.">      while (i &gt; 0) {</span>
+<span class="nc" id="L304">        gen(17, x, z);</span>
+<span class="nc" id="L305">        Node nextChild = x.right;</span>
+<span class="nc" id="L306">        x.left.right = x.right;</span>
+<span class="nc" id="L307">        x.right.left = x.left;</span>
+<span class="nc" id="L308">        x.left = min;</span>
+<span class="nc" id="L309">        x.right = min.right;</span>
+<span class="nc" id="L310">        min.right = x;</span>
+<span class="nc" id="L311">        x.right.left = x;</span>
+<span class="nc" id="L312">        x.parent = null;</span>
+<span class="nc" id="L313">        x = nextChild;</span>
+<span class="nc" id="L314">        i--;</span>
+      }
+<span class="fc" id="L316">      z.left.right = z.right;</span>
+<span class="fc" id="L317">      z.right.left = z.left;</span>
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">      if (z == z.right) {</span>
+<span class="fc" id="L319">        gen(18, x, z);</span>
+<span class="fc" id="L320">        min = null;</span>
+<span class="fc" id="L321">      } else {</span>
+<span class="nc" id="L322">        gen(19, x, z);</span>
+<span class="nc" id="L323">        min = z.right;</span>
+<span class="nc" id="L324">        consolidate();</span>
+      }
+
+<span class="fc" id="L327">      n--;</span>
+    }
+<span class="fc" id="L329">    cachedNodes.remove(z);</span>
+<span class="fc" id="L330">    return z;</span>
+  }
+
+  public int size() {
+<span class="fc" id="L334">    return n;</span>
+  }
+
+  public static FibHeap union(FibHeap heap1, FibHeap heap2) {
+<span class="fc" id="L338">    FibHeap heap = new FibHeap();</span>
+<span class="pc bpc" id="L339" title="2 of 4 branches missed.">    if ((heap1 != null) &amp;&amp; (heap2 != null)) {</span>
+<span class="fc" id="L340">      heap.min = heap1.min;</span>
+<span class="pc bpc" id="L341" title="1 of 2 branches missed.">      if (heap.min != null) {</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">        if (heap2.min != null) {</span>
+<span class="nc" id="L343">          heap.min.right.left = heap2.min.left;</span>
+<span class="nc" id="L344">          heap2.min.left.right = heap.min.right;</span>
+<span class="nc" id="L345">          heap.min.right = heap2.min;</span>
+<span class="nc" id="L346">          heap2.min.left = heap.min;</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">          if (heap2.min.cost &lt; heap1.min.cost) heap.min = heap2.min;</span>
+        }
+<span class="pc" id="L349">      } else heap.min = heap2.min;</span>
+<span class="fc" id="L350">      heap.n = heap1.n + heap2.n;</span>
+    }
+<span class="fc" id="L352">    return heap;</span>
+  }
+
+  public static void main(String[] Argv) {
+<span class="nc" id="L356">    FibHeap h = new FibHeap();</span>
+
+<span class="nc" id="L358">    h.insert(3);</span>
+<span class="nc" id="L359">    System.out.println(h.min().cost);</span>
+<span class="nc" id="L360">    h.insert(2);</span>
+<span class="nc" id="L361">    System.out.println(h.min().cost);</span>
+<span class="nc" id="L362">    h.insert(4);</span>
+<span class="nc" id="L363">    System.out.println(h.min().cost);</span>
+<span class="nc" id="L364">    h.insert(1);</span>
+<span class="nc" id="L365">    System.out.println(h.min().cost);</span>
+<span class="nc" id="L366">    h.removeMin();</span>
+<span class="nc" id="L367">    System.out.println(h.min().cost);</span>
+<span class="nc" id="L368">    h.removeMin();</span>
+<span class="nc" id="L369">    System.out.println(h.min().cost);</span>
+<span class="nc" id="L370">    h.removeMin();</span>
+<span class="nc" id="L371">    System.out.println(h.min().cost);</span>
+<span class="nc" id="L372">    h.removeMin();</span>
+<span class="nc" id="L373">    h.removeMin();</span>
+<span class="nc" id="L374">    h.removeMin();</span>
+<span class="nc" id="L375">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

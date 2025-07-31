@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Node.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.demo</a> &gt; <span class="el_source">Node.java</span></div><h1>Node.java</h1><pre class="source lang-java linenums">package com.demo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+//Taken from JPF examples directory.
+
+public class Node {
+
+  public Node parent, left, right, child;
+
+<span class="fc" id="L12">  public boolean mark = false;</span>
+<span class="fc" id="L13">  public int cost, degree = 0;</span>
+
+  private FibHeap heap;
+
+<span class="fc" id="L17">  public Node(int c, FibHeap heap) {</span>
+<span class="fc" id="L18">    cost = c;</span>
+<span class="fc" id="L19">    right = this;</span>
+<span class="fc" id="L20">    left = this;</span>
+<span class="fc" id="L21">    this.heap = heap;</span>
+<span class="fc" id="L22">  }</span>
+
+  public String toString(int k, boolean flag) {
+<span class="nc" id="L25">    String res = &quot;{&quot; + mark + &quot; &quot;;</span>
+<span class="nc bnc" id="L26" title="All 2 branches missed.">    if (flag) res += cost + &quot; &quot;;</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">    if (k != 0) {</span>
+<span class="nc bnc" id="L28" title="All 4 branches missed.">      if (left == null || left == this) res += &quot;null&quot;;</span>
+<span class="nc" id="L29">      else res += left.toString(k - 1, flag);</span>
+<span class="nc bnc" id="L30" title="All 4 branches missed.">      if (right == null || right == this) res += &quot;null&quot;;</span>
+<span class="nc" id="L31">      else res += right.toString(k - 1, flag);</span>
+<span class="nc bnc" id="L32" title="All 2 branches missed.">      if (child == null) res += &quot;null&quot;;</span>
+    }
+<span class="nc" id="L34">    return res;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L39">    return toString(0, true);</span>
+  }
+
+  public List&lt;Object&gt; getAbstraction() {
+<span class="nc" id="L43">    List&lt;Object&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L44">    retval.add(parent);</span>
+<span class="nc" id="L45">    retval.add(left);</span>
+<span class="nc" id="L46">    retval.add(right);</span>
+<span class="nc" id="L47">    retval.add(child);</span>
+<span class="nc" id="L48">    retval.add(</span>
+<span class="nc" id="L49">        &quot;min_cost_rel:&quot;</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">            + Integer.valueOf(heap.min == null ? -1 : heap.min.cost)</span>
+<span class="nc" id="L51">                .compareTo(Integer.valueOf(this.cost)));</span>
+<span class="nc" id="L52">    return retval;</span>
+  }
+
+  public boolean shouldAbstract() {
+<span class="nc" id="L56">    return true;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

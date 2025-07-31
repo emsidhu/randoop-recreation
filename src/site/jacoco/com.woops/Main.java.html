@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Main.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.woops</a> &gt; <span class="el_source">Main.java</span></div><h1>Main.java</h1><pre class="source lang-java linenums">package com.woops;
+
+import java.io.File;
+import java.io.BufferedWriter;
+import java.nio.file.Files;
+import java.io.IOException;        // add this import
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L15">public class Main </span>
+{
+  public static void main(String[] args) throws Exception {
+<span class="nc" id="L18">    String dirArg = null;</span>
+<span class="nc" id="L19">    String classArg = null;</span>
+<span class="nc" id="L20">    int timeLimit = 5000;       // Default timeout in milliseconds</span>
+<span class="nc" id="L21">    int maxSequences = 500;       // Default number of sequences to generate</span>
+  
+    // Parse command-line arguments
+<span class="nc" id="L24">    List&lt;String&gt; methodNames = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">    for (String arg : args) {</span>
+<span class="nc bnc" id="L26" title="All 2 branches missed.">      if (arg.startsWith(&quot;--dir=&quot;)) {</span>
+<span class="nc" id="L27">        dirArg = arg.substring(&quot;--dir=&quot;.length());</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">      } else if (arg.startsWith(&quot;--class=&quot;)) {</span>
+<span class="nc" id="L29">        classArg = arg.substring(&quot;--class=&quot;.length());</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">      } else if (arg.startsWith(&quot;--time=&quot;)) {</span>
+<span class="nc" id="L31">        timeLimit = Integer.parseInt(arg.substring(&quot;--time=&quot;.length()));</span>
+<span class="nc bnc" id="L32" title="All 2 branches missed.">      } else if (arg.startsWith(&quot;--max=&quot;)) {</span>
+<span class="nc" id="L33">        maxSequences = Integer.parseInt(arg.substring(&quot;--max=&quot;.length()));</span>
+<span class="nc" id="L34">      } else {</span>
+<span class="nc" id="L35">        methodNames.add(arg);</span>
+      }
+    }
+  
+    // Validate required arguments
+<span class="nc bnc" id="L40" title="All 4 branches missed.">    if (dirArg == null || classArg == null) {</span>
+<span class="nc" id="L41">      System.err.println(&quot;Usage: mvn exec:java -Dexec.args=\&quot;--dir=&lt;class-dir&gt; --class=com.&lt;package&gt;.&lt;class-name&gt; [method1 method2 ...]\&quot;&quot;);</span>
+<span class="nc" id="L42">      System.err.println(&quot;If no methods specified, all public methods will be used&quot;);</span>
+<span class="nc" id="L43">      return;</span>
+    }
+  
+<span class="nc" id="L46">    File classDir = new File(dirArg);</span>
+<span class="nc bnc" id="L47" title="All 4 branches missed.">    if (!classDir.exists() || !classDir.isDirectory()) {</span>
+<span class="nc" id="L48">      System.err.println(&quot;Error: The provided directory is invalid.&quot;);</span>
+<span class="nc" id="L49">      return;</span>
+    }
+  
+    // Load all specified class names (comma-separated)
+<span class="nc" id="L53">    String[] classNames = classArg.split(&quot;,&quot;);</span>
+<span class="nc" id="L54">    List&lt;Class&lt;?&gt;&gt; classes = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    for (String className : classNames) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">      if (!className.matches(&quot;([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[A-Z][a-zA-Z\\d_$]*&quot;)) {</span>
+<span class="nc" id="L58">        System.err.println(&quot;Error: Invalid class name format: &quot; + className);</span>
+<span class="nc" id="L59">        return;</span>
+      }
+  
+<span class="nc" id="L62">      Class&lt;?&gt; cls = getClassFromFile(classDir, className.trim());</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">      for (URLClassLoader l : openLoaders) { l.close(); }</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      if (cls != null) {</span>
+<span class="nc" id="L65">        classes.add(cls);</span>
+<span class="nc" id="L66">      } else {</span>
+<span class="nc" id="L67">        System.err.println(&quot;Warning: Failed to load class &quot; + className);</span>
+      }
+    }
+  
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    if (classes.isEmpty()) {</span>
+<span class="nc" id="L72">      System.err.println(&quot;Error: No valid class loaded.&quot;);</span>
+<span class="nc" id="L73">      return;</span>
+    }
+  
+    // Run sequence generation
+<span class="nc" id="L77">    Pair&lt;List&lt;Sequence&gt;, List&lt;Sequence&gt;&gt; sequencePair =</span>
+<span class="nc" id="L78">        SequenceGenerator.generateSequences(classes, timeLimit, maxSequences, methodNames);</span>
+  
+    // Generate JUnit test class
+<span class="nc" id="L81">    String suiteClassName = &quot;GeneratedTests&quot;;</span>
+<span class="nc" id="L82">    String outDir = &quot;./target/generated-sources/com/demo&quot;;</span>
+
+    try {
+<span class="nc" id="L85">      Path dirPath = Paths.get(outDir);</span>
+<span class="nc" id="L86">      Files.createDirectories(dirPath);</span>
+<span class="nc" id="L87">      Path filePath = dirPath.resolve(suiteClassName + &quot;.java&quot;);</span>
+  
+<span class="nc" id="L89">      try (BufferedWriter w = Files.newBufferedWriter(filePath)) {</span>
+<span class="nc" id="L90">        w.write(&quot;&quot;&quot;</span>
+                package com.demo;
+                import org.junit.jupiter.api.Assertions;
+                import org.junit.jupiter.api.Test;
+  
+                public class %s {
+<span class="nc" id="L96">                &quot;&quot;&quot;.formatted(suiteClassName));</span>
+  
+<span class="nc" id="L98">        System.out.println(&quot;Valid Sequences:&quot;);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        for (Sequence seq : sequencePair.first) {</span>
+<span class="nc" id="L100">          w.write(seq.toCode(true));</span>
+<span class="nc" id="L101">          w.newLine();</span>
+        }
+  
+<span class="nc" id="L104">        System.out.println();</span>
+<span class="nc" id="L105">        System.out.println(&quot;Invalid Sequences:&quot;);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        for (Sequence seq : sequencePair.second) {</span>
+<span class="nc" id="L107">          w.write(seq.toCode(false));</span>
+<span class="nc" id="L108">          w.newLine();</span>
+        }
+  
+        // Close the test class
+<span class="nc" id="L112">        w.write(&quot;}&quot;);</span>
+      }
+  
+<span class="nc" id="L115">      System.out.printf(&quot;Wrote %d valid and %d invalid sequences to %s%n&quot;,</span>
+<span class="nc" id="L116">          sequencePair.first.size(), sequencePair.second.size(), filePath);</span>
+  
+<span class="nc" id="L118">    } catch (IOException ioe) {</span>
+<span class="nc" id="L119">      System.err.println(&quot;Failed to write test class: &quot; + ioe.getMessage());</span>
+<span class="nc" id="L120">      ioe.printStackTrace();</span>
+    }
+<span class="nc" id="L122">  }</span>
+  
+
+<span class="nc" id="L125">  private static final List&lt;URLClassLoader&gt; openLoaders = new ArrayList&lt;&gt;();</span>
+  // Returns a Class 
+  private static Class&lt;?&gt; getClassFromFile(File dir, String className)  throws MalformedURLException, ClassNotFoundException {
+<span class="nc" id="L128">    URL url = dir.toPath().toAbsolutePath().toUri().toURL();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">    if (!url.toString().endsWith(&quot;/&quot;)) {          // ensure it’s treated as a dir</span>
+<span class="nc" id="L130">        url = new URL(url.toString() + &quot;/&quot;);</span>
+    }
+<span class="nc" id="L132">    URLClassLoader loader =</span>
+<span class="nc" id="L133">        new URLClassLoader(new URL[] { url }, Main.class.getClassLoader());</span>
+<span class="nc" id="L134">    openLoaders.add(loader);                      // remember to close later</span>
+<span class="nc" id="L135">    return Class.forName(className, false, loader);</span>
+  }
+
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

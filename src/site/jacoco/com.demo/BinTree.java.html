@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BinTree.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.demo</a> &gt; <span class="el_source">BinTree.java</span></div><h1>BinTree.java</h1><pre class="source lang-java linenums">package com.demo;
+
+import java.util.HashSet;
+import java.util.Set;
+
+class BTNode {
+
+  public int value;
+
+  public BTNode left, right;
+
+<span class="fc" id="L12">  public BTNode(int x) {</span>
+<span class="fc" id="L13">    value = x;</span>
+<span class="fc" id="L14">    left = null;</span>
+<span class="fc" id="L15">    right = null;</span>
+<span class="fc" id="L16">  }</span>
+}
+
+public class BinTree {
+
+<span class="fc" id="L21">  private static long startTime = System.currentTimeMillis();</span>
+
+  private BTNode root;
+
+<span class="fc" id="L25">  public BinTree() {</span>
+<span class="fc" id="L26">    root = null;</span>
+<span class="fc" id="L27">  }</span>
+
+  //----
+<span class="fc" id="L30">  private static void outputTestSequence(int number) {}</span>
+
+<span class="fc" id="L32">  public static Set&lt;String&gt; branchFingerprints = new HashSet&lt;&gt;();</span>
+
+  // private static Set abs_states = new HashSet();
+
+<span class="fc" id="L36">  public static int counter = 0;</span>
+
+  public static int gen_native(int br, BTNode n0, int x, BTNode n1, BTNode n2) {
+<span class="fc" id="L39">    String res = br + &quot;,&quot;;</span>
+    //For Basic Block Coverage
+    //START comment here
+
+    BTNode temp;
+<span class="fc bfc" id="L44" title="All 2 branches covered.">    if (n0 == null) {</span>
+<span class="fc" id="L45">      res += &quot;-&quot;;</span>
+<span class="fc" id="L46">    } else {</span>
+      // commented out because of symbolic version
+      //        temp = env.getIntField(n0,null, &quot;value&quot;);
+      //        if (temp &lt; x) res+= &quot;&lt;&quot;;
+      //        if (temp == x) res+= &quot;=&quot;;
+      //        if (temp &gt; x) res+= &quot;&gt;&quot;;
+<span class="fc" id="L52">      temp = n0.left;</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">      res += (temp == null) ? &quot;L-&quot; : &quot;L+&quot;;</span>
+<span class="fc" id="L54">      temp = n0.right;</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">      res += (temp == null) ? &quot;R-&quot; : &quot;R+&quot;;</span>
+    }
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">    res += (n1 == null) ? &quot;P-&quot; : &quot;P+&quot;;</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">    if (n2 == null) {</span>
+<span class="fc" id="L59">      res += &quot;B-&quot;;</span>
+<span class="fc" id="L60">    } else {</span>
+<span class="nc" id="L61">      temp = n2.left;</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">      res += (temp == null) ? &quot;BL-&quot; : &quot;BL+&quot;;</span>
+<span class="nc" id="L63">      temp = n2.right;</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      res += (temp == null) ? &quot;BR-&quot; : &quot;BR+&quot;;</span>
+    }
+    //End comment here
+
+<span class="fc bfc" id="L68" title="All 2 branches covered.">    if (!branchFingerprints.contains(res)) {</span>
+<span class="fc" id="L69">      branchFingerprints.add(res);</span>
+<span class="fc" id="L70">      System.out.println(&quot;Test case number &quot; + branchFingerprints.size() + &quot; for '&quot; + res + &quot;': &quot;);</span>
+      // System.out.println(&quot;TIME=&quot; + (System.currentTimeMillis() - startTime));
+<span class="fc" id="L72">      counter = branchFingerprints.size();</span>
+<span class="fc" id="L73">      return branchFingerprints.size();</span>
+    }
+<span class="fc" id="L75">    return 0;</span>
+  }
+
+  private static void gen(int br, BTNode n0, int x, BTNode n1, BTNode n2) {
+<span class="fc" id="L79">    int c = gen_native(br, n0, x, n1, n2);</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">    if (c != 0) outputTestSequence(c);</span>
+<span class="fc" id="L81">  }</span>
+
+  //----
+
+  public void add(int x) {
+<span class="fc" id="L86">    BTNode current = root;</span>
+
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    if (root == null) {</span>
+<span class="fc" id="L89">      gen(0, current, x, null, null);</span>
+<span class="fc" id="L90">      root = new BTNode(x);</span>
+<span class="fc" id="L91">      return;</span>
+    }
+
+<span class="fc bfc" id="L94" title="All 2 branches covered.">    while (current.value != x) {</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">      if (x &lt; current.value) {</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (current.left == null) {</span>
+<span class="fc" id="L97">          gen(1, current, x, null, null);</span>
+<span class="fc" id="L98">          current.left = new BTNode(x);</span>
+<span class="fc" id="L99">        } else {</span>
+<span class="fc" id="L100">          gen(2, current, x, null, null);</span>
+<span class="fc" id="L101">          current = current.left;</span>
+        }
+<span class="fc" id="L103">      } else {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (current.right == null) {</span>
+<span class="nc" id="L105">          gen(3, current, x, null, null);</span>
+<span class="nc" id="L106">          current.right = new BTNode(x);</span>
+<span class="nc" id="L107">        } else {</span>
+<span class="nc" id="L108">          gen(4, current, x, null, null);</span>
+<span class="nc" id="L109">          current = current.right;</span>
+        }
+      }
+    }
+<span class="fc" id="L113">  }</span>
+
+  public boolean find(int x) {
+<span class="fc" id="L116">    BTNode current = root;</span>
+
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">    while (current != null) {</span>
+
+<span class="nc bnc" id="L120" title="All 2 branches missed.">      if (current.value == x) {</span>
+<span class="nc" id="L121">        gen(5, current, x, null, null);</span>
+<span class="nc" id="L122">        return true;</span>
+      }
+
+<span class="nc bnc" id="L125" title="All 2 branches missed.">      if (x &lt; current.value) {</span>
+<span class="nc" id="L126">        gen(6, current, x, null, null);</span>
+<span class="nc" id="L127">        current = current.left;</span>
+<span class="nc" id="L128">      } else {</span>
+<span class="nc" id="L129">        gen(7, current, x, null, null);</span>
+<span class="nc" id="L130">        current = current.right;</span>
+      }
+    }
+<span class="fc" id="L133">    gen(16, current, x, null, null);</span>
+
+<span class="fc" id="L135">    return false;</span>
+  }
+
+  public boolean remove(int x) {
+<span class="fc" id="L139">    BTNode current = root;</span>
+<span class="fc" id="L140">    BTNode parent = null;</span>
+<span class="fc" id="L141">    boolean branch = true; //true =left, false =right</span>
+
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">    while (current != null) {</span>
+
+<span class="nc bnc" id="L145" title="All 2 branches missed.">      if (current.value == x) {</span>
+<span class="nc" id="L146">        BTNode bigson = current;</span>
+<span class="nc bnc" id="L147" title="All 4 branches missed.">        while (bigson.left != null || bigson.right != null) {</span>
+<span class="nc" id="L148">          parent = bigson;</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">          if (bigson.right != null) {</span>
+<span class="nc" id="L150">            gen(8, current, x, bigson, parent);</span>
+<span class="nc" id="L151">            bigson = bigson.right;</span>
+<span class="nc" id="L152">            branch = false;</span>
+<span class="nc" id="L153">          } else {</span>
+<span class="nc" id="L154">            gen(9, current, x, bigson, parent);</span>
+<span class="nc" id="L155">            bigson = bigson.left;</span>
+<span class="nc" id="L156">            branch = true;</span>
+          }
+        }
+
+        //        System.out.println(&quot;Remove: current &quot;+current.value+&quot; parent &quot;+parent.value+&quot; bigson &quot;+bigson.value);
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (parent != null) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">          if (branch) {</span>
+<span class="nc" id="L163">            gen(10, current, x, bigson, parent);</span>
+<span class="nc" id="L164">            parent.left = null;</span>
+<span class="nc" id="L165">          } else {</span>
+<span class="nc" id="L166">            gen(11, current, x, bigson, parent);</span>
+<span class="nc" id="L167">            parent.right = null;</span>
+          }
+        }
+
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (bigson != current) {</span>
+<span class="nc" id="L172">          gen(12, current, x, bigson, parent);</span>
+<span class="nc" id="L173">          current.value = bigson.value;</span>
+<span class="nc" id="L174">        } else {</span>
+<span class="nc" id="L175">          gen(13, current, x, bigson, parent);</span>
+        }
+
+<span class="nc" id="L178">        return true;</span>
+      }
+
+<span class="nc" id="L181">      parent = current;</span>
+      //        if (current.value &lt;x ) { // THERE WAS ERROR
+<span class="nc bnc" id="L183" title="All 2 branches missed.">      if (current.value &gt; x) {</span>
+<span class="nc" id="L184">        gen(14, current, x, null, parent);</span>
+<span class="nc" id="L185">        current = current.left;</span>
+<span class="nc" id="L186">        branch = true;</span>
+<span class="nc" id="L187">      } else {</span>
+<span class="nc" id="L188">        gen(15, current, x, null, parent);</span>
+<span class="nc" id="L189">        current = current.right;</span>
+<span class="nc" id="L190">        branch = false;</span>
+      }
+    }
+
+<span class="fc" id="L194">    gen(17, current, x, null, parent);</span>
+<span class="fc" id="L195">    return false;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

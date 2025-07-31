@@ -17,8 +17,8 @@ public class Main
   public static void main(String[] args) throws Exception {
     String dirArg = null;
     String classArg = null;
-    int timeLimit = 1000;       // Default timeout in milliseconds
-    int maxSequences = 50;       // Default number of sequences to generate
+    int timeLimit = 5000;       // Default timeout in milliseconds
+    int maxSequences = 500;       // Default number of sequences to generate
   
     // Parse command-line arguments
     List<String> methodNames = new ArrayList<>();

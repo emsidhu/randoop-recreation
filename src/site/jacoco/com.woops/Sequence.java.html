@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Sequence.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.woops</a> &gt; <span class="el_source">Sequence.java</span></div><h1>Sequence.java</h1><pre class="source lang-java linenums">package com.woops;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Sequence {
+<span class="nc" id="L8">  public final List&lt;Statement&gt; statements = new ArrayList&lt;&gt;();</span>
+
+  // For filters
+<span class="nc" id="L11">  private Object lastResult = null;</span>
+<span class="nc" id="L12">  private boolean threwException = false;</span>
+<span class="nc" id="L13">  private String violatedContract = null; // Track which contract was violated</span>
+<span class="nc" id="L14">  private Statement violatingStmt = null; // Track which statement caused the violation</span>
+
+<span class="nc" id="L16">  public Sequence() {</span>
+<span class="nc" id="L17">  }</span>
+
+  public void concat(Sequence seq) {
+<span class="nc" id="L20">    this.statements.addAll(seq.statements);</span>
+<span class="nc" id="L21">  }</span>
+
+  public static Sequence extend(Method m, List&lt;Sequence&gt; seqs, List&lt;Argument&gt; args) {
+<span class="nc" id="L24">    Sequence newSeq = new Sequence();</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">    for (Sequence seq : seqs) {</span>
+<span class="nc" id="L26">      newSeq.statements.addAll(seq.statements);</span>
+    }
+<span class="nc" id="L28">    newSeq.statements.add(new MethodCall(m, args));</span>
+<span class="nc" id="L29">    return newSeq;</span>
+  }
+
+  public void execute() {
+    try {
+<span class="nc bnc" id="L34" title="All 2 branches missed.">      for (Statement stmt : statements) {</span>
+<span class="nc" id="L35">        stmt.execute();</span>
+<span class="nc" id="L36">        lastResult = stmt.getResult();</span>
+      }
+<span class="nc" id="L38">      threwException = false;</span>
+<span class="nc" id="L39">    } catch (Exception e) {</span>
+<span class="nc" id="L40">      threwException = true;</span>
+    }
+<span class="nc" id="L42">  }</span>
+
+  // Getter for filter
+  public Object getLastResult() {
+<span class="nc" id="L46">    return lastResult;</span>
+  }
+
+  public boolean throwsException() {
+<span class="nc" id="L50">    return threwException;</span>
+  }
+
+
+  public void setViolatedContract(String contract) {
+<span class="nc" id="L55">    this.violatedContract = contract;</span>
+<span class="nc" id="L56">  }</span>
+
+  public String getViolatedContract() {
+<span class="nc" id="L59">    return violatedContract;</span>
+  }
+
+  public void setViolatingStmt(Statement statement) {
+<span class="nc" id="L63">    this.violatingStmt = statement;</span>
+<span class="nc" id="L64">  }</span>
+
+  public Statement getViolatingStmt() {
+<span class="nc" id="L67">    return violatingStmt;</span>
+  }
+
+  // properly formats each test case
+  public String toCode(boolean isValid) {
+<span class="nc" id="L72">    return toCode(isValid, this.violatedContract);</span>
+  }
+
+  // Fingerprint for EquivalenceFilter
+  public String getSignatureFingerprint() {
+<span class="nc" id="L77">    StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    for (Statement stmt : statements) {</span>
+<span class="nc" id="L79">      sb.append(stmt.getSignature()).append(&quot;;&quot;);</span>
+    }
+<span class="nc" id="L81">    return sb.toString();</span>
+  }
+
+  // Formats each test case
+  public String toCode(boolean isValid, String violatedContract) {
+<span class="nc" id="L86">    StringBuilder code = new StringBuilder();</span>
+
+    // Unique method name
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    String prefix = isValid ? &quot;validGeneratedTest_&quot; : &quot;invalidGeneratedTest_&quot;;</span>
+<span class="nc" id="L90">    String methodName = prefix + Math.abs(hashCode());</span>
+
+<span class="nc" id="L92">    code.append(&quot;  @org.junit.jupiter.api.Test\n&quot;);</span>
+<span class="nc" id="L93">    code.append(&quot;  public void &quot;).append(methodName).append(&quot;() throws Throwable {\n&quot;);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    if (isValid) {</span>
+<span class="nc" id="L95">      generateValidTest(code);</span>
+<span class="nc" id="L96">    } else {</span>
+<span class="nc" id="L97">      generateInvalidTest(code, violatedContract);</span>
+    }
+
+<span class="nc" id="L100">    code.append(&quot;  }\n&quot;);</span>
+<span class="nc" id="L101">    return code.toString();</span>
+  }
+
+  private void generateValidTest(StringBuilder code) {
+<span class="nc bnc" id="L105" title="All 2 branches missed.">    for (int i = 0; i &lt; statements.size(); i++) {</span>
+<span class="nc" id="L106">      Statement stmt = statements.get(i);</span>
+      // Give the statement a corresponding variable name if needed
+<span class="nc bnc" id="L108" title="All 2 branches missed.">      if (stmt.getType() != void.class) {</span>
+<span class="nc" id="L109">        stmt.setVariableName(&quot;var&quot; + i);</span>
+      }
+<span class="nc" id="L111">      code.append(&quot;    &quot;).append(stmt.toCode()).append(&quot;;\n&quot;);</span>
+    }
+
+    // Comment this out if not needed
+<span class="nc" id="L115">    code.append(&quot;\n&quot;).append(&quot;    // Contract Checks \n&quot;);</span>
+<span class="nc" id="L116">    addContractAssertions(code);</span>
+<span class="nc" id="L117">  }</span>
+
+  private void generateInvalidTest(StringBuilder code, String violatedContract) {
+<span class="nc" id="L120">    code.append(&quot;    Assertions.assertThrows(Throwable.class, () -&gt; {\n&quot;);</span>
+    
+<span class="nc bnc" id="L122" title="All 2 branches missed.">    for (int i = 0; i &lt; statements.size(); i++) {</span>
+<span class="nc" id="L123">      Statement stmt = statements.get(i);</span>
+      // Give the statement a corresponding variable name if needed
+<span class="nc bnc" id="L125" title="All 2 branches missed.">      if (stmt.getType() != void.class) {</span>
+<span class="nc" id="L126">        stmt.setVariableName(&quot;var&quot; + i);</span>
+      }
+<span class="nc" id="L128">      code.append(&quot;      &quot;).append(stmt.toCode()).append(&quot;;\n&quot;);</span>
+    }
+    
+<span class="nc" id="L131">    code.append(&quot;    });\n&quot;);</span>
+    
+    // Add assertion that verifies contract violation (if applicable)
+<span class="nc bnc" id="L134" title="All 4 branches missed.">    if (violatedContract != null &amp;&amp; !violatedContract.isEmpty()) {</span>
+<span class="nc" id="L135">      addContractViolationAssertion(code, violatedContract);</span>
+    }
+<span class="nc" id="L137">  }</span>
+
+  
+  private void addContractAssertions(StringBuilder code) {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    for (Statement stmt : statements) {</span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">      if (stmt.getType() != void.class &amp;&amp; stmt.getVariableName() != null) {</span>
+<span class="nc" id="L143">        String varName = stmt.getVariableName();</span>
+<span class="nc" id="L144">        Class&lt;?&gt; type = stmt.getType();</span>
+
+        // Add assertions for default contracts
+<span class="nc" id="L147">        addDefaultAssertions(code, varName, type);</span>
+      }
+    }
+<span class="nc" id="L150">  }</span>
+
+  private void addDefaultAssertions(StringBuilder code, String varName, Class&lt;?&gt; type) {
+<span class="nc bnc" id="L153" title="All 2 branches missed.">    if (type.isPrimitive()) {</span>
+<span class="nc" id="L154">      return;</span>
+    }
+
+    // o.equals(o) must return true (reflexivity)
+<span class="nc" id="L158">    code.append(&quot;    Assertions.assertEquals(&quot;).append(varName).append(&quot;, &quot;).append(varName).append(&quot;);\n&quot;);</span>
+    // hashCode() should not throw exception
+<span class="nc" id="L160">    code.append(&quot;    Assertions.assertDoesNotThrow(() -&gt; &quot;).append(varName).append(&quot;.hashCode());\n&quot;);</span>
+    // toString() should not throw exception
+<span class="nc" id="L162">    code.append(&quot;    Assertions.assertDoesNotThrow(() -&gt; &quot;).append(varName).append(&quot;.toString());\n&quot;);</span>
+<span class="nc" id="L163">  }</span>
+
+
+  private void addContractViolationAssertion(StringBuilder code, String violatedContract) {
+<span class="nc bnc" id="L167" title="All 4 branches missed.">    if (violatingStmt == null || violatingStmt.getVariableName() == null) return;</span>
+    
+<span class="nc" id="L169">    String varName = violatingStmt.getVariableName();</span>
+<span class="nc bnc" id="L170" title="All 4 branches missed.">    switch (violatedContract) {</span>
+      case &quot;DefaultEqualsContract&quot;:
+<span class="nc" id="L172">        code.append(&quot;    Assertions.assertEquals(&quot;).append(varName).append(&quot;, &quot;).append(varName).append(&quot;);\n&quot;);</span>
+<span class="nc" id="L173">        break;</span>
+        
+      case &quot;DefaultHashCodeContract&quot;:
+<span class="nc" id="L176">        code.append(&quot;    Assertions.assertDoesNotThrow(() -&gt; &quot;).append(varName).append(&quot;.hashCode());\n&quot;);</span>
+<span class="nc" id="L177">        break;</span>
+        
+      case &quot;DefaultToStringContract&quot;:
+<span class="nc" id="L180">        code.append(&quot;    Assertions.assertDoesNotThrow(() -&gt; &quot;).append(varName).append(&quot;.toString());\n&quot;);</span>
+<span class="nc" id="L181">        break;</span>
+        
+      default:
+<span class="nc" id="L184">        code.append(&quot;    // Contract &quot;).append(violatedContract).append(&quot; was violated by &quot;).append(varName).append(&quot;\n&quot;);</span>
+    }
+<span class="nc" id="L186">  }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

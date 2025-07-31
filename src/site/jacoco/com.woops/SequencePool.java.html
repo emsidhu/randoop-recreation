@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SequencePool.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.woops</a> &gt; <span class="el_source">SequencePool.java</span></div><h1>SequencePool.java</h1><pre class="source lang-java linenums">package com.woops;
+
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+<span class="nc" id="L10">public class SequencePool {</span>
+<span class="nc" id="L11">  private final List&lt;Sequence&gt; allSequences = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L12">  private final Map&lt;Class&lt;?&gt;, List&lt;Sequence&gt;&gt; typeIndex = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L13">  private final Random random = new Random();</span>
+
+  public void addSequence(Sequence seq) {
+<span class="nc" id="L16">    allSequences.add(seq);</span>
+
+    // Map the sequence to all the types it contains
+<span class="nc bnc" id="L19" title="All 2 branches missed.">    for (Statement stmt : seq.statements) {</span>
+<span class="nc" id="L20">      Class&lt;?&gt; type = stmt.getType();</span>
+<span class="nc bnc" id="L21" title="All 2 branches missed.">      if (type != void.class) {</span>
+<span class="nc" id="L22">        typeIndex.computeIfAbsent(type, k -&gt; new ArrayList&lt;&gt;()).add(seq);</span>
+      }
+    }
+<span class="nc" id="L25">  }</span>
+
+  // Returns a Sequence containing a Statement with a return value of targetType
+  public Sequence findSequenceOfType(Class&lt;?&gt; targetType) {
+<span class="nc" id="L29">    List&lt;Sequence&gt; candidates = typeIndex.get(targetType);</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">    if (candidates == null) candidates = new ArrayList&lt;&gt;();</span>
+
+    // If subclasses are possible, check for them
+    if (
+<span class="nc bnc" id="L34" title="All 2 branches missed.">      !targetType.isPrimitive() &amp;&amp; </span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">      !targetType.isArray() &amp;&amp;</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">      !Modifier.isFinal(targetType.getModifiers())</span>
+    ) {
+<span class="nc bnc" id="L38" title="All 2 branches missed.">      for (Map.Entry&lt;Class&lt;?&gt;, List&lt;Sequence&gt;&gt; entry : typeIndex.entrySet()) {</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (targetType.isAssignableFrom(entry.getKey())) {</span>
+<span class="nc" id="L40">          candidates.addAll(entry.getValue());</span>
+        }
+      }
+    }
+
+<span class="nc bnc" id="L45" title="All 2 branches missed.">    if (candidates.isEmpty()) {</span>
+<span class="nc" id="L46">      return null;</span>
+    }
+    // Return a random candidate
+<span class="nc" id="L49">    return candidates.get(random.nextInt(candidates.size()));</span>
+  }
+
+  // Returns the statement in seq with return type of targetType
+  public Statement findStatementOfType(Sequence seq, Class&lt;?&gt; targetType) {
+    // Get all statements of targetType from the sequence
+<span class="nc" id="L55">    List&lt;Statement&gt; candidates = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    for (Statement stmt : seq.statements) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">      if (targetType.isAssignableFrom(stmt.getType())) {</span>
+<span class="nc" id="L58">        candidates.add(stmt);</span>
+      }
+    }
+    
+<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (candidates.isEmpty()) {</span>
+<span class="nc" id="L63">      return null;</span>
+    }
+    
+    // Return a random candidate
+<span class="nc" id="L67">    return candidates.get(random.nextInt(candidates.size()));</span>
+  }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

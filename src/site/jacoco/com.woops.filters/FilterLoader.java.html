@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FilterLoader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.woops.filters</a> &gt; <span class="el_source">FilterLoader.java</span></div><h1>FilterLoader.java</h1><pre class="source lang-java linenums">// This class loads custom filters from a JSON config file
+package com.woops.filters;
+
+import com.woops.filters.Filter;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L13">public class FilterLoader {</span>
+
+    // Load filters from config.json
+    public static List&lt;Filter&gt; loadFiltersFromConfig(String configPath) {
+<span class="nc" id="L17">        List&lt;Filter&gt; filters = new ArrayList&lt;&gt;();</span>
+        try {
+<span class="nc" id="L19">            String content = Files.readString(Paths.get(configPath));</span>
+<span class="nc" id="L20">            JSONObject json = new JSONObject(content);</span>
+<span class="nc" id="L21">            JSONArray filterClasses = json.getJSONArray(&quot;filters&quot;);</span>
+
+<span class="nc bnc" id="L23" title="All 2 branches missed.">            for (int i = 0; i &lt; filterClasses.length(); i++) {</span>
+<span class="nc" id="L24">                String className = filterClasses.getString(i);</span>
+                try {
+<span class="nc" id="L26">                    Class&lt;?&gt; cls = Class.forName(className);</span>
+<span class="nc" id="L27">                    Object instance = cls.getDeclaredConstructor().newInstance();</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">                    if (instance instanceof Filter) {</span>
+<span class="nc" id="L29">                        filters.add((Filter) instance);</span>
+<span class="nc" id="L30">                        System.out.println(&quot; Loaded filter: &quot; + className);</span>
+<span class="nc" id="L31">                    } else {</span>
+<span class="nc" id="L32">                        System.err.println(&quot;❌ &quot; + className + &quot; does not implement Filter interface&quot;);</span>
+                    }
+<span class="nc" id="L34">                } catch (Exception e) {</span>
+<span class="nc" id="L35">                    System.err.println(&quot; Failed to load filter class: &quot; + className);</span>
+<span class="nc" id="L36">                    e.printStackTrace();</span>
+                }
+            }
+
+<span class="nc" id="L40">        } catch (IOException e) {</span>
+<span class="nc" id="L41">            System.err.println(&quot;Failed to read config file: &quot; + e.getMessage());</span>
+        }
+<span class="nc" id="L43">        return filters;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

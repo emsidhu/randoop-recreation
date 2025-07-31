@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MethodCall.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">randoop-recreation</a> &gt; <a href="index.source.html" class="el_package">com.woops</a> &gt; <span class="el_source">MethodCall.java</span></div><h1>MethodCall.java</h1><pre class="source lang-java linenums">package com.woops;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
+
+/** 
+  * Represents a method call within a sequence.
+  * Includes its arguments and return value (result).
+  */
+public final class MethodCall extends Statement {
+  private final Method method;
+  private final List&lt;Argument&gt; args; 
+  private final boolean isStatic;
+
+  public MethodCall(Method method, List&lt;Argument&gt; args) {
+<span class="nc" id="L18">    super(method.getReturnType()); // initialize type</span>
+<span class="nc" id="L19">    this.method = method;</span>
+<span class="nc" id="L20">    this.args = args;</span>
+<span class="nc" id="L21">    isStatic = Modifier.isStatic(method.getModifiers());</span>
+<span class="nc" id="L22">  }</span>
+
+  @Override
+  public void execute() throws Exception {
+    // Get the receiver from the first argument if the method isn't static
+<span class="nc bnc" id="L27" title="All 2 branches missed.">    Object receiver = isStatic ? null : args.get(0).getValue();</span>
+    
+<span class="nc" id="L29">    Object[] actualArgs = args.stream()</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">      .skip(isStatic ? 0 : 1)  // Skip first argument (the receiver) if not static</span>
+<span class="nc" id="L31">      .map(Argument::getValue)  // Extract values from Arguments</span>
+<span class="nc" id="L32">      .toArray();</span>
+      
+<span class="nc" id="L34">    result = method.invoke(receiver, actualArgs);</span>
+<span class="nc" id="L35">  }</span>
+
+
+  
+  @Override
+  public String toCode() {
+<span class="nc" id="L41">    StringBuilder code = new StringBuilder();</span>
+
+    // If it returns something, save it to a variable 
+<span class="nc bnc" id="L44" title="All 2 branches missed.">    if (method.getReturnType() != void.class) {</span>
+<span class="nc" id="L45">      code.append(method.getReturnType().getSimpleName())</span>
+<span class="nc" id="L46">        .append(&quot; &quot;)</span>
+<span class="nc" id="L47">        .append(getVariableName())</span>
+<span class="nc" id="L48">        .append(&quot; = &quot;);</span>
+    }
+
+    // If the Method is static, it's called on the class name
+<span class="nc bnc" id="L52" title="All 2 branches missed.">    if (isStatic) {</span>
+<span class="nc" id="L53">      code.append(method.getDeclaringClass().getName());</span>
+<span class="nc" id="L54">    } else { // Otherwise, it's called on an instance</span>
+<span class="nc" id="L55">      Argument receiverArg = args.get(0);</span>
+<span class="nc" id="L56">      code.append(receiverArg.getStatement().getVariableName());</span>
+    }
+<span class="nc" id="L58">    code.append(&quot;.&quot;).append(method.getName()).append(&quot;(&quot;);</span>
+
+    // Don't include the first arg (the receiver) if the method isn't static
+<span class="nc bnc" id="L61" title="All 4 branches missed.">    for (int i = (isStatic ? 0 : 1); i &lt; args.size(); i++) {</span>
+<span class="nc" id="L62">      Argument arg = args.get(i);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">      if (arg.hasStatement()) {</span>
+<span class="nc" id="L64">        code.append(arg.getStatement().getVariableName());</span>
+<span class="nc" id="L65">      } else {</span>
+<span class="nc" id="L66">        code.append(addQuotes(arg.getValue()));</span>
+      }
+<span class="nc bnc" id="L68" title="All 2 branches missed.">      if (i &lt; args.size() - 1) code.append(&quot;, &quot;);</span>
+    }
+
+<span class="nc" id="L71">    code.append(&quot;)&quot;);</span>
+<span class="nc" id="L72">    return code.toString();</span>
+  }
+
+  // Added for equivalence filtering
+  @Override
+  public String getSignature() {
+<span class="nc" id="L78">    return method.getName() + &quot;(&quot; + Arrays.toString(method.getParameterTypes()) + &quot;)&quot;;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
