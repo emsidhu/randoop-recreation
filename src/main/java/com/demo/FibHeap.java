@@ -229,13 +229,6 @@ public class FibHeap {
     if (x.cost < min.cost) min = x;
   }
 
-  public static java.util.Random rand = new java.util.Random(0);
-
-  public void deleteRandomNode() {
-    if (cachedNodes.size() == 0) return;
-    delete(cachedNodes.get(rand.nextInt(cachedNodes.size())));
-  }
-
   public void delete(Node node) {
     decreaseKey(node, Integer.MIN_VALUE);
     removeMin();
@@ -352,25 +345,4 @@ public class FibHeap {
     return heap;
   }
 
-  public static void main(String[] Argv) {
-    FibHeap h = new FibHeap();
-
-    h.insert(3);
-    System.out.println(h.min().cost);
-    h.insert(2);
-    System.out.println(h.min().cost);
-    h.insert(4);
-    System.out.println(h.min().cost);
-    h.insert(1);
-    System.out.println(h.min().cost);
-    h.removeMin();
-    System.out.println(h.min().cost);
-    h.removeMin();
-    System.out.println(h.min().cost);
-    h.removeMin();
-    System.out.println(h.min().cost);
-    h.removeMin();
-    h.removeMin();
-    h.removeMin();
-  }
 }
