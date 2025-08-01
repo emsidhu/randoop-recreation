@@ -104,16 +104,17 @@ public class Main
         System.out.println();
         System.out.println("Invalid Sequences:");
         for (Sequence seq : sequencePair.second) {
-          w.write(seq.toCode(false));
-          w.newLine();
+          if (seq.getThrewException() == true) {
+            w.write(seq.toCode(false));
+            w.newLine();
+          }
         }
   
         // Close the test class
         w.write("}");
       }
   
-      System.out.printf("Wrote %d valid and %d invalid sequences to %s%n",
-          sequencePair.first.size(), sequencePair.second.size(), filePath);
+      System.out.printf("Wrote sequences to %s%n",filePath);
   
     } catch (IOException ioe) {
       System.err.println("Failed to write test class: " + ioe.getMessage());

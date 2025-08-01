@@ -6,10 +6,11 @@ import java.util.List;
 
 public class Sequence {
   public final List<Statement> statements = new ArrayList<>();
-
+  
   // For filters
-  private Object lastResult = null;
   private boolean threwException = false;
+
+  private Object lastResult = null;
   private String violatedContract = null; // Track which contract was violated
   private Statement violatingStmt = null; // Track which statement caused the violation
 
@@ -29,27 +30,25 @@ public class Sequence {
     return newSeq;
   }
 
-  public void execute() {
-    try {
-      for (Statement stmt : statements) {
-        stmt.execute();
-        lastResult = stmt.getResult();
-      }
-      threwException = false;
-    } catch (Exception e) {
-      threwException = true;
+  public void execute() throws Exception {
+    for (Statement stmt : statements) {
+      stmt.execute();
+      lastResult = stmt.getResult();
     }
+  }
+
+  public boolean getThrewException() {
+    return threwException;
+  }
+  
+  public void setThrewException(boolean threwException) {
+    this.threwException = threwException;
   }
 
   // Getter for filter
   public Object getLastResult() {
     return lastResult;
   }
-
-  public boolean throwsException() {
-    return threwException;
-  }
-
 
   public void setViolatedContract(String contract) {
     this.violatedContract = contract;
@@ -139,7 +138,7 @@ public class Sequence {
   
   private void addContractAssertions(StringBuilder code) {
     for (Statement stmt : statements) {
-      if (stmt.getType() != void.class && stmt.getVariableName() != null) {
+      if (stmt.getResult() != null && stmt.getType() != void.class &&  stmt.getVariableName() != null) {
         String varName = stmt.getVariableName();
         Class<?> type = stmt.getType();
 

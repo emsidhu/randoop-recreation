@@ -171,7 +171,10 @@ public class SequenceGenerator {
         newSeq.execute();
       } catch (Exception e) {
         System.out.println("Exception during execution: " + e);
+        System.out.println("Sequence that threw exception: " + newSeq.toCode(false));
+        newSeq.setThrewException(true);
         errorSeqs.add(newSeq);
+        continue;
       }
       
       // Check structural equivalence
@@ -187,6 +190,7 @@ public class SequenceGenerator {
       for (Filter f : filters) {
         if (!f.isValid(newSeq)) {
           System.out.println("Sequence filtered by " + f.getName());
+          passedAll = false;
           break;
         }
       }
@@ -204,12 +208,10 @@ public class SequenceGenerator {
       }
 
       if (passedAll) {
-        System.out.println("Sequence accepted:");
-        System.out.println(newSeq.toCode(true));
         validSeqs.add(newSeq);
-      } else {
         seenFingerprints.add(fingerprint);
         pool.addSequence(newSeq);
+      } else {
         errorSeqs.add(newSeq);
       }
 
@@ -346,23 +348,6 @@ public class SequenceGenerator {
       List<Argument> constructorArgs = new ArrayList<>();
       
       for (Class<?> paramType : constructor.getParameterTypes()) {
-        // 5% chance to use null for object types
-        if (!paramType.isPrimitive() && random.nextDouble() < 0.05) {
-          Statement nullStmt = new ConstantAssignment(null, paramType);
-          newSeq.statements.add(nullStmt);
-          constructorArgs.add(new Argument(nullStmt));
-          continue;
-        }
-        
-        // 20% chance to use a random value
-        if (random.nextDouble() < 0.2) {
-          Object randomValue = getRandomValue(paramType);
-          Statement constantStmt = new ConstantAssignment(randomValue, paramType);
-          newSeq.statements.add(constantStmt);
-          constructorArgs.add(new Argument(constantStmt));
-          continue;
-        }
-
         // Check if current sequence contains usable statement
         Statement argStmt = pool.findStatementOfType(newSeq, paramType);
         if (argStmt != null) {

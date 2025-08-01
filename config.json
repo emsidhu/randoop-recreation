@@ -1,7 +1,6 @@
 {
     "filters": [
       "com.woops.filters.NullFilter",
-      "com.woops.filters.ExceptionFilter",
       "com.woops.filters.EqualityFilter"
     ]
   }
