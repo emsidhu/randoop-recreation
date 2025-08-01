@@ -348,6 +348,15 @@ public class SequenceGenerator {
       List<Argument> constructorArgs = new ArrayList<>();
       
       for (Class<?> paramType : constructor.getParameterTypes()) {
+          // 10% chance to use a random value regardless of usable statements
+          if (random.nextDouble() < 0.1) {
+            Object randomValue = getRandomValue(paramType);
+            Statement constantStmt = new ConstantAssignment(randomValue, paramType);
+            newSeq.statements.add(constantStmt);
+            constructorArgs.add(new Argument(constantStmt));
+            continue;
+          }
+
         // Check if current sequence contains usable statement
         Statement argStmt = pool.findStatementOfType(newSeq, paramType);
         if (argStmt != null) {
