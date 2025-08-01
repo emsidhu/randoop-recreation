@@ -63,7 +63,7 @@ public final class MethodCall extends Statement {
       if (arg.hasStatement()) {
         code.append(arg.getStatement().getVariableName());
       } else {
-        code.append(addQuotes(arg.getValue()));
+        code.append(arg.getValue());
       }
       if (i < args.size() - 1) code.append(", ");
     }
