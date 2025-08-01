@@ -91,73 +91,80 @@ public class SequenceGenerator {
       // Increment usage count for the chosen method
       methodUsageCount.put(method, methodUsageCount.get(method) + 1);
 
-      List<Argument> args = new ArrayList<>();
+      // Add same method until repeatMethod is false 
+      boolean repeatMethod = true;
+      while (repeatMethod) {
+        // 95% chance to use method again
+        if (random.nextDouble() < 0.95) repeatMethod = false;
+              List<Argument> args = new ArrayList<>();
 
-      // Handle instance method: add receiver object
-      if (!Modifier.isStatic(method.getModifiers())) {
-        // First check current sequence
-        Statement receiverStmt = pool.findStatementOfType(newSeq, cls);
-        if (receiverStmt == null) {
-          // Check other sequences
-          Sequence receiverSequence = pool.findSequenceOfType(cls);
-          if (receiverSequence != null) {
-            newSeq.concat(receiverSequence);
-            // Get the required value out of the sequence
-            receiverStmt = pool.findStatementOfType(receiverSequence, cls);
+        // Handle instance method: add receiver object
+        if (!Modifier.isStatic(method.getModifiers())) {
+          // First check current sequence
+          Statement receiverStmt = pool.findStatementOfType(newSeq, cls);
+          if (receiverStmt == null) {
+            // Check other sequences
+            Sequence receiverSequence = pool.findSequenceOfType(cls);
+            if (receiverSequence != null) {
+              newSeq.concat(receiverSequence);
+              // Get the required value out of the sequence
+              receiverStmt = pool.findStatementOfType(receiverSequence, cls);
+              args.add(new Argument(receiverStmt));
+            }
+          } else {
             args.add(new Argument(receiverStmt));
           }
-        } else {
-          args.add(new Argument(receiverStmt));
+
+          // If no receiver exists, create one
+          if (receiverStmt == null) { 
+            receiverStmt = createConstructorStatement(cls, newSeq, pool, constructors);
+            if (receiverStmt != null) {
+              args.add(new Argument(receiverStmt));
+            } else {
+              System.err.println("Failed to create constructor for " + cls.getSimpleName());
+              continue;
+            }
+          }
         }
 
-        // If no receiver exists, create one
-        if (receiverStmt == null) { 
-          receiverStmt = createConstructorStatement(cls, newSeq, pool, constructors);
-          if (receiverStmt != null) {
-            args.add(new Argument(receiverStmt));
-          } else {
-            System.err.println("Failed to create constructor for " + cls.getSimpleName());
+        // Generate arguments
+        for (Class<?> type : method.getParameterTypes()) {
+          // 5% chance to use null for object types
+          if (!type.isPrimitive() && random.nextDouble() < 0.05) {
+            Statement nullStmt = new ConstantAssignment(null, type);
+            newSeq.statements.add(nullStmt);
+            args.add(new Argument(nullStmt));
             continue;
           }
-        }
-      }
-
-      // Generate arguments
-      for (Class<?> type : method.getParameterTypes()) {
-        // 5% chance to use null for object types
-        if (!type.isPrimitive() && random.nextDouble() < 0.05) {
-          Statement nullStmt = new ConstantAssignment(null, type);
-          newSeq.statements.add(nullStmt);
-          args.add(new Argument(nullStmt));
-          continue;
-        }
-        
-        // 20% chance to use a random value regardless of usable statements
-        if (random.nextDouble() < 0.2) {
-          Statement paramStmt = createParameter(type, newSeq, pool);
-          args.add(new Argument(paramStmt));
-          continue;
-        }
-
-        // Check if current sequence contains usable statement
-        Statement argStmt = pool.findStatementOfType(newSeq, type);
-        if (argStmt != null) {
-          args.add(new Argument(argStmt));
-        } else {
-          // Otherwise, check pool
-          Sequence argSequence = pool.findSequenceOfType(type);
-          if (argSequence != null) {
-            newSeq.concat(argSequence);
-            argStmt = pool.findStatementOfType(argSequence, type);
-            args.add(new Argument(argStmt));
-          } else {
+          
+          // 20% chance to use a random value regardless of usable statements
+          if (random.nextDouble() < 0.2) {
             Statement paramStmt = createParameter(type, newSeq, pool);
             args.add(new Argument(paramStmt));
+            continue;
+          }
+
+          // Check if current sequence contains usable statement
+          Statement argStmt = pool.findStatementOfType(newSeq, type);
+          if (argStmt != null) {
+            args.add(new Argument(argStmt));
+          } else {
+            // Otherwise, check pool
+            Sequence argSequence = pool.findSequenceOfType(type);
+            if (argSequence != null) {
+              newSeq.concat(argSequence);
+              argStmt = pool.findStatementOfType(argSequence, type);
+              args.add(new Argument(argStmt));
+            } else {
+              Statement paramStmt = createParameter(type, newSeq, pool);
+              args.add(new Argument(paramStmt));
+            }
           }
         }
+        
+        newSeq.statements.add(new MethodCall(method, args));        
       }
-      
-      newSeq.statements.add(new MethodCall(method, args));
+
       sequenceCount++;
 
       try {
