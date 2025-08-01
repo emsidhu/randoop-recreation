@@ -12,11 +12,12 @@ public class Argument {
   
   public Argument(Statement statement) {
     this.statement = statement;
-    this.value = statement.getResult();
+    this.value = null; // Don't capture result at construction time
   }
   
   public Object getValue() {
-    return value;
+    // If we have a statement, get its current result; otherwise use the direct value
+    return statement != null ? statement.getResult() : value;
   }
   
   public Statement getStatement() {
