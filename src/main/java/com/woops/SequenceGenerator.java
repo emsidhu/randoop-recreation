@@ -165,7 +165,7 @@ public class SequenceGenerator {
         newSeq.statements.add(new MethodCall(method, args));        
       }
 
-      sequenceCount++;
+      
 
       try {
         newSeq.execute();
@@ -211,6 +211,7 @@ public class SequenceGenerator {
         validSeqs.add(newSeq);
         seenFingerprints.add(fingerprint);
         pool.addSequence(newSeq);
+        sequenceCount++;
       } else {
         errorSeqs.add(newSeq);
       }
