@@ -165,7 +165,22 @@ public class SequenceGenerator {
         newSeq.statements.add(new MethodCall(method, args));        
       }
 
+      // Check structural equivalence
+      String fingerprint = newSeq.getSignatureFingerprint();
+      if (seenFingerprints.contains(fingerprint)) {
+        System.out.println("Sequence skipped due to duplicate structure");
+        continue;
+      }
       
+      boolean passedAll = true;
+      // Apply filters
+      // for (Filter f : filters) {
+      //   if (!f.isValid(newSeq)) {
+      //     System.out.println("Sequence filtered by " + f.getName());
+      //     passedAll = false;
+      //     continue;
+      //   }
+      // }
 
       try {
         newSeq.execute();
@@ -175,24 +190,6 @@ public class SequenceGenerator {
         newSeq.setThrewException(true);
         errorSeqs.add(newSeq);
         continue;
-      }
-      
-      // Check structural equivalence
-      String fingerprint = newSeq.getSignatureFingerprint();
-      if (seenFingerprints.contains(fingerprint)) {
-        System.out.println("Sequence skipped due to duplicate structure");
-        errorSeqs.add(newSeq);
-        continue;
-      }
-      
-      boolean passedAll = true;
-      // Apply filters
-      for (Filter f : filters) {
-        if (!f.isValid(newSeq)) {
-          System.out.println("Sequence filtered by " + f.getName());
-          passedAll = false;
-          break;
-        }
       }
 
       // Check for contract violations
