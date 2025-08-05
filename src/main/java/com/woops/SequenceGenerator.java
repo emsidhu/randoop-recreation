@@ -204,17 +204,18 @@ public class SequenceGenerator {
         System.out.println("Sequence violates contract: " + violatedContract);
         newSeq.setViolatedContract(violatedContract);
         newSeq.setViolatingStmt(violatingStmt);
+        newSeq.setThrewException(true);
         passedAll = false;
       }
 
       if (passedAll) {
         validSeqs.add(newSeq);
-        seenFingerprints.add(fingerprint);
         pool.addSequence(newSeq);
         sequenceCount++;
       } else {
         errorSeqs.add(newSeq);
       }
+      seenFingerprints.add(fingerprint);
 
     }
 
