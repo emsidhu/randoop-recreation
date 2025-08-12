@@ -91,16 +91,22 @@ public class Sequence {
     code.append("  @org.junit.jupiter.api.Test\n");
     code.append("  public void ").append(methodName).append("() throws Throwable {\n");
     if (isValid) {
-      generateValidTest(code);
+      generateTest(code, "");
     } else {
-      generateInvalidTest(code, violatedContract);
+      generateTest(code, violatedContract);
     }
 
     code.append("  }\n");
     return code.toString();
   }
 
-  private void generateValidTest(StringBuilder code) {
+  private void generateTest(StringBuilder code, String violatedContract) {
+    if (violatedContract == "") {
+      code.append("\n").append("    // Contract Checks \n");
+    } else {
+      addContractViolationComment(code, violatedContract);
+    }
+    
     for (int i = 0; i < statements.size(); i++) {
       Statement stmt = statements.get(i);
       // Give the statement a corresponding variable name if needed
@@ -110,35 +116,33 @@ public class Sequence {
       code.append("    ").append(stmt.toCode()).append(";\n");
     }
 
-    // Comment this out if not needed
-    code.append("\n").append("    // Contract Checks \n");
     addContractAssertions(code);
   }
 
-  private void generateInvalidTest(StringBuilder code, String violatedContract) {
-    code.append("    Assertions.assertThrows(Throwable.class, () -> {\n");
+  // private void generateInvalidTest(StringBuilder code, String violatedContract) {
+  //   code.append("    Assertions.assertThrows(Throwable.class, () -> {\n");
     
-    for (int i = 0; i < statements.size(); i++) {
-      Statement stmt = statements.get(i);
-      // Give the statement a corresponding variable name if needed
-      if (stmt.getType() != void.class) {
-        stmt.setVariableName("var" + i);
-      }
-      code.append("      ").append(stmt.toCode()).append(";\n");
-    }
+  //   for (int i = 0; i < statements.size(); i++) {
+  //     Statement stmt = statements.get(i);
+  //     // Give the statement a corresponding variable name if needed
+  //     if (stmt.getType() != void.class) {
+  //       stmt.setVariableName("var" + i);
+  //     }
+  //     code.append("      ").append(stmt.toCode()).append(";\n");
+  //   }
     
-    code.append("    });\n");
+  //   code.append("    });\n");
     
-    // Add assertion that verifies contract violation (if applicable)
-    if (violatedContract != null && !violatedContract.isEmpty()) {
-      addContractViolationAssertion(code, violatedContract);
-    }
-  }
+  //   // Add assertion that verifies contract violation (if applicable)
+  //   if (violatedContract != null && !violatedContract.isEmpty()) {
+  //     addContractViolationAssertion(code, violatedContract);
+  //   }
+  // }
 
   
   private void addContractAssertions(StringBuilder code) {
     for (Statement stmt : statements) {
-      if (stmt.getResult() != null && stmt.getType() != void.class &&  stmt.getVariableName() != null) {
+      if (stmt.getResult() != null && stmt.getType() != void.class && stmt.getVariableName() != null) {
         String varName = stmt.getVariableName();
         Class<?> type = stmt.getType();
 
@@ -149,9 +153,7 @@ public class Sequence {
   }
 
   private void addDefaultAssertions(StringBuilder code, String varName, Class<?> type) {
-    if (type.isPrimitive()) {
-      return;
-    }
+    if (type.isPrimitive()) { return; }
 
     // o.equals(o) must return true (reflexivity)
     code.append("    Assertions.assertEquals(").append(varName).append(", ").append(varName).append(");\n");
@@ -162,26 +164,11 @@ public class Sequence {
   }
 
 
-  private void addContractViolationAssertion(StringBuilder code, String violatedContract) {
+  private void addContractViolationComment(StringBuilder code, String violatedContract) {
     if (violatingStmt == null || violatingStmt.getVariableName() == null) return;
     
     String varName = violatingStmt.getVariableName();
-    switch (violatedContract) {
-      case "DefaultEqualsContract":
-        code.append("    Assertions.assertEquals(").append(varName).append(", ").append(varName).append(");\n");
-        break;
-        
-      case "DefaultHashCodeContract":
-        code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".hashCode());\n");
-        break;
-        
-      case "DefaultToStringContract":
-        code.append("    Assertions.assertDoesNotThrow(() -> ").append(varName).append(".toString());\n");
-        break;
-        
-      default:
-        code.append("    // Contract ").append(violatedContract).append(" was violated by ").append(varName).append("\n");
-    }
+    code.append("    // Contract ").append(violatedContract).append(" was violated by ").append(varName).append("\n");
   }
 
 
