@@ -19,6 +19,8 @@ public class Main
     String classArg = null;
     int timeLimit = 1000;       // Default timeout in milliseconds
     int maxSequences = 50;       // Default number of sequences to generate
+    double reuseProb = 0.85;     // Default reuse probability
+
   
     // Parse command-line arguments
     List<String> methodNames = new ArrayList<>();
@@ -31,6 +33,8 @@ public class Main
         timeLimit = Integer.parseInt(arg.substring("--time=".length()));
       } else if (arg.startsWith("--max=")) {
         maxSequences = Integer.parseInt(arg.substring("--max=".length()));
+      } else if (arg.startsWith("--reuse-prob=")) {
+        reuseProb = Double.parseDouble(arg.substring("--reuse-prob=".length()));
       } else {
         methodNames.add(arg);
       }
@@ -38,10 +42,15 @@ public class Main
   
     // Validate required arguments
     if (dirArg == null || classArg == null) {
-      System.err.println("Usage: mvn exec:java -Dexec.args=\"--dir=<class-dir> --class=com.<package>.<class-name> [method1 method2 ...]\"");
+      System.err.println("Usage: mvn exec:java -Dexec.args=\"--dir=<class-dir> --class=com.<package>.<class-name> --time=<max-seconds> --reuse-prob=<probability> [method1 method2 ...]\"");
       System.err.println("If no methods specified, all public methods will be used");
       return;
     }
+
+    if (reuseProb > 1 || reuseProb < 0) {
+      System.err.println("Reuse probability must be within 0-1");
+      return;
+    } 
   
     File classDir = new File(dirArg);
     if (!classDir.exists() || !classDir.isDirectory()) {
@@ -75,7 +84,7 @@ public class Main
   
     // Run sequence generation
     Pair<List<Sequence>, List<Sequence>> sequencePair =
-        SequenceGenerator.generateSequences(classes, timeLimit, maxSequences, methodNames);
+        SequenceGenerator.generateSequences(classes, timeLimit, maxSequences, methodNames, reuseProb);
   
     // Generate JUnit test class
     String suiteClassName = "GeneratedTests";

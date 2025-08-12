@@ -24,7 +24,7 @@ public class SequenceGenerator {
     * @return A Pair containing a list of the valid, and error-causing, Sequences
   */
   public static Pair<List<Sequence>, List<Sequence>> generateSequences(
-      List<Class<?>> classes, long timeLimit, int maxSequences, List<String> allowedMethods) {
+      List<Class<?>> classes, long timeLimit, int maxSequences, List<String> allowedMethods, double reuseProb) {
 
     List<Sequence> errorSeqs = new ArrayList<>();
     SequencePool pool = new SequencePool();
@@ -80,8 +80,8 @@ public class SequenceGenerator {
 
       if (methods.size() == 0) continue;
       Sequence newSeq = new Sequence();
-      // 75% chance to start from an existing valid sequence, 25% chance to start empty
-      if (!validSeqs.isEmpty() && random.nextDouble() < 0.75) {
+      // 85% chance to start from an existing valid sequence, 15% chance to start empty
+      if (!validSeqs.isEmpty() && random.nextDouble() < reuseProb) {
         // Use an existing valid sequence as starting point
         Sequence baseSeq = validSeqs.get(random.nextInt(validSeqs.size()));
         newSeq.concat(baseSeq);
