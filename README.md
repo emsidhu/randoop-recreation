@@ -45,7 +45,7 @@ This project is a simplified reimplementation of Randoop, a feedback-directed ra
    ```
 #### Run with selected methods:
 
-If you want to generate tests using specific methods, use:
+If you want to generate tests using specific methods, list them after all other arguments:
 
 ```bash
 mvn -e exec:java -Dexec.mainClass="com.woops.Main" -Dexec.args="--dir=./target/classes --class=com.demo.BinTree find add remove"
