@@ -15,14 +15,6 @@ import java.util.*;
 public class SequenceGenerator {
   private final static Random random = new Random();
   
-  /** 
-    * Generates a list of sequences from the given classes.
-    *
-    * @param classes List of classes to generate sequences from.
-    * @param timeLimit Time limit in milliseconds.
-    * @param maxSequences Maximum number of sequences to generate.
-    * @return A Pair containing a list of the valid, and error-causing, Sequences
-  */
   public static Pair<List<Sequence>, List<Sequence>> generateSequences(
       List<Class<?>> classes, long timeLimit, int maxSequences, List<String> allowedMethods, double reuseProb) {
 
