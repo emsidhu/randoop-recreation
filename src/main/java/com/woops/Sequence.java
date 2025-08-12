@@ -88,7 +88,7 @@ public class Sequence {
     String prefix = isValid ? "validGeneratedTest_" : "invalidGeneratedTest_";
     String methodName = prefix + Math.abs(hashCode());
 
-    code.append("  @org.junit.jupiter.api.Test\n");
+    code.append("  @Test\n");
     code.append("  public void ").append(methodName).append("() throws Throwable {\n");
     if (isValid) {
       generateTest(code, "");
@@ -116,27 +116,6 @@ public class Sequence {
     code.append("\n").append("    // Contract Checks \n");
     addContractAssertions(code);
   }
-
-  // private void generateInvalidTest(StringBuilder code, String violatedContract) {
-  //   code.append("    Assertions.assertThrows(Throwable.class, () -> {\n");
-    
-  //   for (int i = 0; i < statements.size(); i++) {
-  //     Statement stmt = statements.get(i);
-  //     // Give the statement a corresponding variable name if needed
-  //     if (stmt.getType() != void.class) {
-  //       stmt.setVariableName("var" + i);
-  //     }
-  //     code.append("      ").append(stmt.toCode()).append(";\n");
-  //   }
-    
-  //   code.append("    });\n");
-    
-  //   // Add assertion that verifies contract violation (if applicable)
-  //   if (violatedContract != null && !violatedContract.isEmpty()) {
-  //     addContractViolationAssertion(code, violatedContract);
-  //   }
-  // }
-
   
   private void addContractAssertions(StringBuilder code) {
     for (Statement stmt : statements) {
