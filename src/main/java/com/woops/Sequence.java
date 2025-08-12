@@ -101,12 +101,6 @@ public class Sequence {
   }
 
   private void generateTest(StringBuilder code, String violatedContract) {
-    if (violatedContract == "") {
-      code.append("\n").append("    // Contract Checks \n");
-    } else {
-      addContractViolationComment(code, violatedContract);
-    }
-    
     for (int i = 0; i < statements.size(); i++) {
       Statement stmt = statements.get(i);
       // Give the statement a corresponding variable name if needed
@@ -115,7 +109,11 @@ public class Sequence {
       }
       code.append("    ").append(stmt.toCode()).append(";\n");
     }
-
+    
+    if (violatedContract != "") {
+      addContractViolationComment(code, violatedContract);
+    }
+    code.append("\n").append("    // Contract Checks \n");
     addContractAssertions(code);
   }
 
