@@ -4,19 +4,11 @@
 
 This project is a simplified reimplementation of Randoop, a feedback-directed random test generation tool. It automatically generates unit tests for Java classes by building sequences of method calls and evaluating them through contracts and filters. The goal is to improve statement/branch coverage while reducing the manual effort needed for writing test suites.
 
-## Features
-
-- Feedback-directed sequence generation
-- Structural equivalence filtering (avoid redundant test logic)
-- Filters for exception, null return, and repeated output
-- Weighted method selection to prioritize less-tested methods
-- Support for constructor calls and primitive value reuse
-
 ## How It Works
 
 1. A random class and method are selected from a provided Java class.
 2. The tool attempts to build valid sequences of method calls with appropriate arguments.
-3. It executes the sequences and evaluates them using various filters.
+3. It executes the sequences and evaluates them using various contracts/filters.
 4. Valid and invalid sequences are output as JUnit test cases.
 
 ## Getting Started
