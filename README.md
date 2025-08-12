@@ -26,15 +26,6 @@ This project is a simplified reimplementation of Randoop, a feedback-directed ra
 - Java 21 (or update `pom.xml` to your JDK version)
 - Maven (3.6+ recommended)
 
-### Project Structure
-
-```
-src/
-  main/java/com/woops/          <- Core engine files
-  main/java/com/woops/filters/  <- Default filters
-  test/java/com/demo/           <- Demo test class (TestClass.java)
-```
-
 ### How to Run
 
 1. Compile the project:
@@ -46,10 +37,10 @@ src/
 2. Run the test generator with your compiled class:
 
    ```bash
-   mvn exec:java -Dexec.mainClass="com.woops.Main" -Dexec.args="target/classes com.demo.TestClass"
+   mvn -e exec:java -Dexec.mainClass="com.woops.Main" -Dexec.args="--dir=./target/classes --class=com.demo.FibHeap --reuse-prob=0.85"
    ```
 
-3. Generated tests will be saved to:
+3. Generated tests are saved to:
 
    ```
    ./target/generated-sources/GeneratedTests.java
@@ -60,17 +51,21 @@ src/
    ```bash
    mvn test
    ```
-#### Run on a specific class with selected methods:
+#### Run with selected methods:
 
-If you want to only generate tests for specific methods of a class, use:
+If you want to generate tests using specific methods, use:
 
 ```bash
-mvn -e exec:java -Dexec.mainClass="com.woops.Main" -Dexec.args="./target/classes com.demo.BinTree find add remove"
+mvn -e exec:java -Dexec.mainClass="com.woops.Main" -Dexec.args="--dir=./target/classes --class=com.demo.BinTree find add remove"
+```
 
-## Customization
+#### Run with multiple classes:
 
-- Add your own filters in `com.woops.filters` and register them in `SequenceGenerator.java`
-- Add your own contracts for runtime validation (in development)
+If you want to test with multiple classes, save them to a single directory and list them comma-separated:
+
+```bash
+mvn -e exec:java -Dexec.mainClass="com.woops.Main" -Dexec.args="--dir=./target/classes --class=com.demo.BinTree,com.demo.FibHeap"
+```
 
 ## Example Output
 
@@ -78,17 +73,21 @@ Sample output of a generated test:
 
 ```java
 @Test
-public void generatedTest_123456789() throws Throwable {
-  int result = com.demo.TestClass.add(3, 4);
-  Assertions.assertEquals(7, result);
+public void validGeneratedTest_1821264475() throws Throwable {
+  com.demo.FibHeap var0 = new com.demo.FibHeap();
+  int var1 = -40;
+  var0.insert(var1);
+  Assertions.assertEquals(var0, var0);
+  Assertions.assertDoesNotThrow(() -> var0.hashCode());
+  Assertions.assertDoesNotThrow(() -> var0.toString());
 }
 ```
 
 ## Authors
 
-- 
+- Ekam Sidhu ess9 ess9@sfu.ca
 - Zhengying Sun zsa65 zsa65@sfu.ca
-- 
+- Alex Bruma aba215 aba215@sfu.ca
 
 ## License
 
